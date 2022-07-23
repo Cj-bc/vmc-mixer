@@ -11,8 +11,8 @@ homepage:       https://github.com/Cj-bc/vmc-mixer#readme
 bug-reports:    https://github.com/Cj-bc/vmc-mixer/issues
 author:         Cj.bc_sd a.k.a Cj-bc
 maintainer:     cj.bc-sd@outlook.jp
-copyright:      MIT
-license:        BSD3
+copyright:      Cj.bc_sd a.k.a Cj-bc
+license:        GPL3
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
