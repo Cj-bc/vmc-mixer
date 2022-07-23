@@ -18,7 +18,25 @@ You should have received a copy of the GNU General Public License along with vmc
 
 module Main where
 
-import Lib
+
+module Main where
+
+import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
+import Sound.OSC.Transport.FD.UDP (udpServer, openUDP)
+import Control.Exception (bracket)
+import Control.Monad (void, forever)
 
 main :: IO ()
-main = someFunc
+main = do
+  let inputs   = [("127.0.0.1", 39540)]
+      (out_addr, out_port) = ("127.0.0.2", 39540)
+      openServer = uncurry udpServer
+
+  void $ withTransports (sequence $ fmap openServer inputs) $ \ins ->
+    withTransport (openUDP out_addr out_port) $ \sendUdp -> forever $ do
+        packets <- sequence $ recvPacket <$> ins
+        sequence $ sendPacket sendUdp <$> packets
+      
+    
+withTransports :: Transport t => IO [t] -> ([t] -> IO a) -> IO a
+withTransports generator = bracket generator (sequence . fmap close)
