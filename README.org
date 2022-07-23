@@ -1,1 +1,41 @@
 * vmc-mixer
+Mix several VMCP compatible streams into one stream.
+Useful if you want to use number of tools to control one VRM model.
+
+** Usage
+For now, you need to modify source code to specify
+in-stream and out-stream addresses.
+
+All ~(address, port_number)~ pair in ~inputs~ variable in Main
+function will be opened as in-stream.
+
+vmc-mixer will await packets from those streams, and
+will send them to ~(out_addr, out_port)~ address.
+
+
+So if you want to recieve packets from ~127.0.0.1:3305~ and
+~127.0.0.2:3356~ , you will modify ~Main.hs~ just like:
+
+#+begin_src diff
+
+  -  let inputs   = [("127.0.0.1", 39540)]
+  +  let inputs   = [("127.0.0.1", 3305), ("127.0.0.2", 3356)]
+         (out_addr, out_port) = ("127.0.0.2", 39540)
+         openServer = uncurry udpServer
+#+end_src
+
+And if you want to send it to ~127.0.0.10:39875~:
+
+#+begin_src diff
+     let inputs   = [("127.0.0.1", 3305), ("127.0.0.2", 3356)]
+  -      (out_addr, out_port) = ("127.0.0.2", 39540)
+  +      (out_addr, out_port) = ("127.0.0.10", 39875)
+         openServer = uncurry udpServer
+#+end_src
+
+Then, run the program with [[https://docs.haskellstack.org/en/stable/README/#the-haskell-tool-stack][stack]].
+
+#+begin_src sh
+  stack run
+#+end_src
+
