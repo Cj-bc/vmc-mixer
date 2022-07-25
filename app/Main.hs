@@ -25,7 +25,7 @@ import Brick.Focus (FocusRing, focusNext, focusPrev, focusRing, withFocusRing, f
 import Brick.Widgets.Core (str, (<+>))
 import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected)
 import Brick.Widgets.Edit (editor, Editor, handleEditorEvent, renderEditor, getEditContents, applyEdit)
-import Brick.Widgets.Border (border)
+import Brick.Widgets.Border (border, borderAttr)
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (bracket)
 import Control.Monad (void, forever)
@@ -56,9 +56,19 @@ renderAddrInfo :: Bool -> (String, Int) -> Widget Name
 renderAddrInfo isFocused (addr, port) = (str addr) <+> (str " | ") <+> (str . show $ port)
   where
 
+-- | Draw 'Widget' in border, but with focus-aware attribute
+--
+-- This function is intented to used with 'withFocusRing'.
+withFocusedBorder :: (Bool -> a -> Widget Name) -> Bool -> a -> Widget Name
+withFocusedBorder renderer isFocused st  = _border $ renderer isFocused st
+  where
+    _border = if isFocused
+              then overrideAttr borderAttr borderFocusedAttr . border
+              else border
+
 ui :: AppState -> [Widget Name]
-ui s = [vBox [border $ withFocusRing (s^.focus) (renderList renderAddrInfo) (s^.inputStreams)
-       , border $ withFocusRing (s^.focus) (renderEditor (str . unlines)) (s^.newAddrEditor)]]
+ui s = [vBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAddrInfo)    (s^.inputStreams)
+             , withFocusRing (s^.focus) (withFocusedBorder $ renderEditor (str . unlines)) (s^.newAddrEditor)]]
 
 eHandler :: AppState -> BrickEvent Name AppEvent -> EventM Name (Next AppState)
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '+') [])) = continue $ s&inputStreams%~(listInsert 0 ("test insertion", 5124))
