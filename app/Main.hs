@@ -71,7 +71,6 @@ ui s = [vBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAd
              , withFocusRing (s^.focus) (withFocusedBorder $ renderEditor (str . unlines)) (s^.newAddrEditor)]]
 
 eHandler :: AppState -> BrickEvent Name AppEvent -> EventM Name (Next AppState)
-eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '+') [])) = continue $ s&inputStreams%~(listInsert 0 ("test insertion", 5124))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '-') [])) =
   continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar 'q') [])) = halt s
