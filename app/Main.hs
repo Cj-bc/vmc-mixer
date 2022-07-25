@@ -23,6 +23,7 @@ module Main where
 
 import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
 import Sound.OSC.Transport.FD.UDP (udpServer, openUDP)
+import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (bracket)
 import Control.Monad (void, forever)
 
@@ -33,10 +34,11 @@ main = do
       openServer = uncurry udpServer
 
   void $ withTransports (sequence $ fmap openServer inputs) $ \ins ->
-    withTransport (openUDP out_addr out_port) $ \sendUdp -> forever $ do
-        packets <- sequence $ recvPacket <$> ins
-        sequence $ sendPacket sendUdp <$> packets
-      
+    withTransport (openUDP out_addr out_port) $ \sendUdp -> do
+    let bypass inSocket outSocket = forever $ do
+          packet <- recvPacket inSocket
+          sendPacket outSocket packet
+    void $ mapConcurrently (flip  bypass sendUdp) ins
     
 withTransports :: Transport t => IO [t] -> ([t] -> IO a) -> IO a
 withTransports generator = bracket generator (sequence . fmap close)
