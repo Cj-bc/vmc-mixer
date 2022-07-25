@@ -103,7 +103,7 @@ app = App { appDraw = ui
           }
 
 main = do
-  let initState = AppState (list InputStreams (V.fromList [("test", 124), ("am", 15), ("telll", 13512)]) 2)
+  let initState = AppState (list InputStreams V.empty 2)
                   (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor])
   void $ defaultMain app initState
 
