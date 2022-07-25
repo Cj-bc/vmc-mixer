@@ -44,6 +44,14 @@ executable vmc-mixer-exe
       base >=4.7 && <5
     , vmc-mixer
     , hosc
+    , brick
+    , vector
+    , microlens
+    , microlens-th
+    , network
+    , vty
+    , async
+    , text-zipper
   default-language: Haskell2010
 
 test-suite vmc-mixer-test
