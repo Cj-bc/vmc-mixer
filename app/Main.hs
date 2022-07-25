@@ -23,7 +23,7 @@ module Main where
 import Brick 
 import Brick.Focus (FocusRing, focusNext, focusPrev, focusRing, withFocusRing, focusGetCurrent)
 import Brick.Widgets.Core (str, (<+>))
-import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected)
+import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected, listSelectedAttr)
 import Brick.Widgets.Edit (editor, Editor, handleEditorEvent, renderEditor, getEditContents, applyEdit)
 import Brick.Widgets.Border (border)
 import Control.Concurrent.Async (mapConcurrently)
@@ -40,6 +40,7 @@ import Network.Socket (Socket)
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro ((^.), (&), (%~), (.~), set)
 
+import VMCMixer.UI.Brick.Attr
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 data AppEvent = NoEvent
@@ -55,7 +56,7 @@ renderAddrInfo :: Bool -> (String, Int) -> Widget Name
 renderAddrInfo isFocused (addr, port) = _attr $ (str addr) <+> (str " | ") <+> (str . show $ port)
   where
     _attr = if isFocused
-            then withAttr "selected"
+            then withAttr listSelectedAttr
             else id
 
 ui :: AppState -> [Widget Name]
@@ -92,7 +93,7 @@ app = App { appDraw = ui
           , appChooseCursor = neverShowCursor
           , appHandleEvent  = eHandler
           , appStartEvent   = return
-          , appAttrMap      = const (attrMap Vty.defAttr [("selected", Vty.withBackColor Vty.currentAttr Color.black)])
+          , appAttrMap      = const vmcmAttrmap
           }
 
 main = do
