@@ -36,8 +36,8 @@ library
     , vty
   default-language: Haskell2010
 
-executable vmc-mixer-exe
-  main-is: Main.hs
+executable vmc-mixer-tui
+  main-is: TUI.hs
   other-modules:
       Paths_vmc_mixer
   hs-source-dirs:
