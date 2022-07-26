@@ -91,7 +91,10 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
       ed' = applyEdit Z.clearZipper ed
       l' = listInsert 0 (unlines newAddr, 0) l -- TODO: Parse it to retrive proper information
   -- TODO: Create Socket for that address
-  in return $ s&(newAddrEditor.~ed').(inputStreams.~l')
+  in if newAddr == [""]
+     then return s
+     else return $ s&(newAddrEditor.~ed').(inputStreams.~l')
+
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s
 
 app :: App AppState AppEvent Name
