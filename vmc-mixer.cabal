@@ -56,6 +56,8 @@ executable vmc-mixer-tui
     , brick
     , vector
     , async
+    , pipes-concurrency
+    , pipes
   default-language: Haskell2010
 
 test-suite vmc-mixer-test

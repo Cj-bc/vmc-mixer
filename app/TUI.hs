@@ -20,10 +20,11 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Main where
 
-import Control.Concurrent.Async (mapConcurrently)
+import Control.Concurrent.Async (mapConcurrently, async, link, wait)
 import Control.Exception (bracket)
-import Control.Monad (void, forever)
+import Control.Monad (void, forever, forM)
 import qualified Data.Vector as V
+import qualified Sound.OSC as OSC
 import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
 import Sound.OSC.Transport.FD.UDP (udpServer, openUDP)
 
@@ -31,22 +32,44 @@ import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick (app, AppState(..), Name(..), initialState)
 import Brick (defaultMain)
 
+import Pipes.Concurrent
+import Pipes
+
 main = do
   void $ defaultMain app initialState
 
+{-
+今気をつけなければいけないもの:
++ Asyncをきちんとcancelする
++ Socketをきちんとcloseする
+-}
 main' :: IO ()
 main' = do
   let inputs   = [("127.0.0.1", 39541), ("192.168.10.3", 39541)]
-      (out_addr, out_port) = ("127.0.0.1", 39540)
-      openServer = uncurry udpServer
+      outAddr = ("127.0.0.1", 39540)
 
-  void $ withTransports (sequence $ fmap openServer inputs) $ \ins ->
-    withTransport (openUDP out_addr out_port) $ \sendUdp -> do
-    let bypass inSocket outSocket = forever $ do
-          packet <- recvPacket inSocket
-          sendPacket outSocket packet
-    void $ mapConcurrently (flip  bypass sendUdp) ins
-    
-withTransports :: Transport t => IO [t] -> ([t] -> IO a) -> IO a
-withTransports generator = bracket generator (sequence . fmap close)
+  -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
+  -- go through.
+  (msgOut, msgIn) <- spawn unbounded
 
+  -- Create 'Async's for each input socket.
+  inputAsyncs <- forM inputs $ \addr -> do
+    a <- async $ awaitPacket addr msgOut
+    link a
+    return a
+
+  -- Opens outputSocket, send messages received.
+  output <- async $ sendPacket' outAddr msgIn
+  void . sequence $ wait <$> (output:inputAsyncs)
+
+sendPacket' :: (String, Int) -> Input OSC.Packet -> IO ()
+sendPacket' addr input = do
+  withTransport (uncurry openUDP $ addr) $ \socket -> do
+    runEffect $ fromInput input >-> (await >>= \packet -> liftIO (sendPacket socket packet))
+    performGC
+
+awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
+awaitPacket addr output =
+  withTransport (uncurry udpServer $ addr) $ \socket -> do
+    runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
+    performGC
