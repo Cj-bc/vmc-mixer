@@ -65,7 +65,7 @@ main' = do
 sendPacket' :: (String, Int) -> Input OSC.Packet -> IO ()
 sendPacket' addr input = do
   withTransport (uncurry openUDP $ addr) $ \socket -> do
-    runEffect $ fromInput input >-> (await >>= \packet -> liftIO (sendPacket socket packet))
+    runEffect $ fromInput input >-> (forever $ await >>= \packet -> liftIO (sendPacket socket packet))
     performGC
 
 awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
