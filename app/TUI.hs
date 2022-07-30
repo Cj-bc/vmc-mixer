@@ -60,26 +60,24 @@ main' = do
     return a
 
   -- Opens outputSocket, send messages received.
-  output <- async $ sendPacket' outAddr msgIn
+  output <- async $ withTransport (udp_server 39544) $ \socket -> do
+                                                         runEffect $ fromInput msgIn >-> sendIt outAddr socket
+                                                         performGC
   void . sequence $ wait <$> (output:inputAsyncs)
 
-sendPacket' :: (String, Int) -> Input OSC.Packet -> IO ()
-sendPacket' addr@(host, port) input = do
-  withTransport (udp_server 39544) $ \socket -> do
-    runEffect $ fromInput input >-> (forever go)
-    performGC
-  where
-    go = do
-      packet <- await                                                           
-      
-      -- I needed to use 'sendTo' instead of 'send' so that it does not requiire
-      -- to have connection.                                                    
-      --
-      -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
-      -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
-      let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4   
-      i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port)) 
-      liftIO $ sendTo socket packet (N.addrAddress i)                           
+-- | Awaits from given 'Input', and send it to given Address.
+sendIt :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
+sendIt (host, port) socket = forever $ do
+  packet <- await
+  let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
+
+  -- I needed to use 'sendTo' instead of 'send' so that it does not requiire
+  -- to have connection.
+  --
+  -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
+  -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
+  i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port))
+  liftIO $ sendTo socket packet (N.addrAddress i)
 
 awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
 awaitPacket addr output =
