@@ -26,8 +26,9 @@ import Control.Monad (void, forever, forM)
 import qualified Data.Vector as V
 import qualified Sound.OSC as OSC
 import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
-import Sound.OSC.Transport.FD.UDP (udpServer, openUDP)
+import Sound.OSC.Transport.FD.UDP (udpServer, udp_server, sendTo, udpSocket)
 
+import qualified Network.Socket as N
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick (app, AppState(..), Name(..), initialState)
 import Brick (defaultMain)
@@ -63,10 +64,22 @@ main' = do
   void . sequence $ wait <$> (output:inputAsyncs)
 
 sendPacket' :: (String, Int) -> Input OSC.Packet -> IO ()
-sendPacket' addr input = do
-  withTransport (uncurry openUDP $ addr) $ \socket -> do
-    runEffect $ fromInput input >-> (forever $ await >>= \packet -> liftIO (sendPacket socket packet))
+sendPacket' addr@(host, port) input = do
+  withTransport (udp_server 39544) $ \socket -> do
+    runEffect $ fromInput input >-> (forever go)
     performGC
+  where
+    go = do
+      packet <- await                                                           
+      
+      -- I needed to use 'sendTo' instead of 'send' so that it does not requiire
+      -- to have connection.                                                    
+      --
+      -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
+      -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
+      let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4   
+      i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port)) 
+      liftIO $ sendTo socket packet (N.addrAddress i)                           
 
 awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
 awaitPacket addr output =

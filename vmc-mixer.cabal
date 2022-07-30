@@ -58,6 +58,7 @@ executable vmc-mixer-tui
     , async
     , pipes-concurrency
     , pipes
+    , network
   default-language: Haskell2010
 
 test-suite vmc-mixer-test
