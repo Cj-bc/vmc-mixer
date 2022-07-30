@@ -60,7 +60,9 @@ main' = do
     return a
 
   -- Opens outputSocket, send messages received.
-  output <- async $ withTransport (udp_server 39544) $ \socket -> do
+  -- 'N.defaultPort' will let system decide what port number to use.
+  -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
+  output <- async $ withTransport (udp_server N.defaultPort) $ \socket -> do
                                                          runEffect $ fromInput msgIn >-> sendIt outAddr socket
                                                          performGC
   void . sequence $ wait <$> (output:inputAsyncs)
