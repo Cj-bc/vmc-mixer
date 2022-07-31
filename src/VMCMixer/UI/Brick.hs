@@ -82,13 +82,13 @@ handleEditorEvent' :: Vty.Event -> AppState -> EventM Name AppState
 handleEditorEvent' (Vty.EvKey Vty.KEnter []) s = 
   let ed = s^.newAddrEditor
       l  = s^.inputStreams
-      newAddr = getEditContents ed
       ed' = applyEdit Z.clearZipper ed
-      l' = listInsert 0 (unlines newAddr, 0) l -- TODO: Parse it to retrive proper information
-  -- TODO: Create Socket for that address
-  in if newAddr == [""]
-     then return s
-     else return $ s&(newAddrEditor.~ed').(inputStreams.~l')
+  in case (parseAddress $ getEditContents ed) of
+       (Left err) -> return s -- TODO: Display error message on UI.
+       (Right (host, port)) -> do
+         let l' = listInsert 0 (host, port) l
+         writeBChan (s^.uiEventEmitter) (NewAddr host port)
+         return $ s&(newAddrEditor.~ed').(inputStreams.~l')
 
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s
 
