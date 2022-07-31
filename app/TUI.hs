@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Main where
 
-import Control.Concurrent.Async (mapConcurrently, async, link, wait)
+import Control.Concurrent.Async (mapConcurrently, async, link, wait, Async, cancel)
 import Control.Exception (bracket)
 import Control.Monad (void, forever, forM)
+import Control.Monad.Trans.State (execStateT, StateT(..), modify', get)
+import Data.List (find)
 import qualified Data.Vector as V
 import qualified Sound.OSC as OSC
 import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
@@ -30,8 +32,10 @@ import Sound.OSC.Transport.FD.UDP (udpServer, udp_server, sendTo, udpSocket)
 
 import qualified Network.Socket as N
 import VMCMixer.UI.Brick.Attr
+import VMCMixer.UI.Brick.Event
 import VMCMixer.UI.Brick (app, AppState(..), Name(..), initialState)
 import Brick (defaultMain)
+import Brick.BChan (BChan, newBChan, readBChan)
 
 import Pipes.Concurrent
 import Pipes
@@ -66,6 +70,29 @@ main' = do
                                                          runEffect $ fromInput msgIn >-> sendIt outAddr socket
                                                          performGC
   void . sequence $ wait <$> (output:inputAsyncs)
+
+-- | Treats brick UI's event and do whatever we need.
+mainLoop :: BChan VMCMixerUIEvent -> Output OSC.Packet -> [((String, Int), Async ())] -> Async () -> IO [Async ()]
+mainLoop eventCh packetOutput initialInputs outputAsync =  return . fmap snd =<< execStateT go initialInputs
+  where
+    go :: StateT [((String, Int), Async ())] IO ()
+    go = forever $ do
+      msg <- liftIO $ readBChan eventCh
+      case msg of
+        NewAddr host port -> do
+          a <- liftIO . async $ awaitPacket (host, port) packetOutput
+          liftIO $ link a
+          modify' (\l -> ((host, port), a):l)
+          -- TODO: Let brick know that work is done by emitting Msg
+        RemoveAddr host port -> do
+          s <- get
+          case find ((== (host, port)) . fst) s of
+            Nothing -> pure ()
+            Just (_, asyncObj) -> do
+              liftIO $ cancel asyncObj
+              modify' $ filter ((/= (host, port)) . fst)
+
+      
 
 -- | Awaits from given 'Input', and send it to given Address.
 sendIt :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
