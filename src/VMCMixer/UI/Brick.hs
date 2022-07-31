@@ -37,6 +37,7 @@ import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
+import VMCMixer.Parser (parseAddress)
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 
@@ -84,11 +85,11 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
   let ed = s^.newAddrEditor
       l  = s^.inputStreams
       ed' = applyEdit Z.clearZipper ed
-  in case (parseAddress $ getEditContents ed) of
+  in case (parseAddress . head $ getEditContents ed) of
        (Left err) -> return s -- TODO: Display error message on UI.
        (Right (host, port)) -> do
          let l' = listInsert 0 (host, port) l
-         writeBChan (s^.uiEventEmitter) (NewAddr host port)
+         liftIO $ writeBChan (s^.uiEventEmitter) (NewAddr host port)
          return $ s&(newAddrEditor.~ed').(inputStreams.~l')
 
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s
