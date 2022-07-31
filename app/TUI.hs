@@ -16,6 +16,28 @@ vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
 
 
+= Thread structure
+
+This have complecated thread structure. I'm not sure if this is good design,
+but I didn't have other idea. If you know better implementation,
+please let me know by opening issue.
+
+Illustration below describes how it's structured:
+
+@
+Main thread -+- receiver
+             |- receiver
+             |...
+             |- Event manager -+- receiver
+                               |- receiver
+                               |...
+@
+
+== Definitions:
+
+- [@Main thread@]: what @stack run@ starts. Also, it's the thread brick's UI loop is running.
+- [@Event manager@]:  Thread that will receive and emit Brick's CustomEvent.
+- [@receiver@]: Thread that will receive 'OSC.Packet' from 'Network.Socket'
 -}
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Main where
@@ -102,8 +124,7 @@ sendIt (host, port) socket = forever $ do
   packet <- await
   let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
 
-  -- I needed to use 'sendTo' instead of 'send' so that it does not requiire
-  -- to have connection.
+  -- I needed to use 'sendTo' instead of 'send' so that it does not requiire to have connection.
   --
   -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
   -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
