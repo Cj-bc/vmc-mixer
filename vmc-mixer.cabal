@@ -60,6 +60,7 @@ executable vmc-mixer-tui
     , pipes-concurrency
     , pipes
     , network
+    , transformers
   default-language: Haskell2010
 
 test-suite vmc-mixer-test
