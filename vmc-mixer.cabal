@@ -28,6 +28,7 @@ library
       VMCMixer.UI.Brick.Attr
       VMCMixer.UI.Brick.Event
       VMCMixer.UI.Brick
+      VMCMixer.Parser
   other-modules:
       Paths_vmc_mixer
   hs-source-dirs:
