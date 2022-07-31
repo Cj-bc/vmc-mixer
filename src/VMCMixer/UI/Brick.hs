@@ -20,12 +20,13 @@ You should have received a copy of the GNU General Public License along with vmc
 module VMCMixer.UI.Brick where
 
 import Brick 
-import Brick.BChan (BChan)
+import Brick.BChan (BChan, writeBChan)
 import Brick.Focus (FocusRing, focusNext, focusPrev, focusRing, withFocusRing, focusGetCurrent)
 import Brick.Widgets.Core (str, (<+>))
 import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected)
 import Brick.Widgets.Edit (editor, Editor, handleEditorEvent, renderEditor, getEditContents, applyEdit)
 import Brick.Widgets.Border (border, borderAttr)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Vector as V
 import qualified Data.Text.Zipper as Z
 import qualified Graphics.Vty as Vty

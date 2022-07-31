@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
 import Data.Attoparsec.Text
+import Control.Applicative ((<|>))
 import qualified Data.Text as T
 
 data HostName = IPAddress Int Int Int Int
