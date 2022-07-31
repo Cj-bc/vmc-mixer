@@ -16,10 +16,9 @@ vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
 -}
-
 {-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
-import Data.Attoparsec.Text
+import Data.Attoparsec.Text as AT
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
 
@@ -49,7 +48,7 @@ ipAddress :: Parser HostName
 ipAddress = IPAddress <$> decimal <*  string "." <*> decimal <* string "." <*> decimal <* string "." <*> decimal
 
 domainName :: Parser HostName
-domainName = DomainName <$> takeWhile (/= ':')
+domainName = DomainName <$> AT.takeWhile (/= ':')
 
 localhost :: Parser HostName
 localhost = Localhost <$ string "localhost"
