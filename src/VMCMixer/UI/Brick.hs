@@ -13,6 +13,7 @@ Portability :  portable
 module VMCMixer.UI.Brick where
 
 import Brick 
+import Brick.BChan (BChan)
 import Brick.Focus (FocusRing, focusNext, focusPrev, focusRing, withFocusRing, focusGetCurrent)
 import Brick.Widgets.Core (str, (<+>))
 import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected)
@@ -27,14 +28,15 @@ import Lens.Micro ((^.), (&), (%~), (.~), set)
 import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
+import VMCMixer.UI.Brick.Event
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
-data AppEvent = NoEvent
 
 data AppState = AppState { _inputStreams :: List Name (String, Int)
                          , _inputStreamSockets :: V.Vector Socket
                          , _newAddrEditor :: Editor String Name
                          , _focus :: FocusRing Name
+                         , _uiEventEmitter :: BChan VMCMixerUIEvent
                          }
 makeLenses ''AppState
 
@@ -56,7 +58,7 @@ ui :: AppState -> [Widget Name]
 ui s = [vBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAddrInfo)    (s^.inputStreams)
              , withFocusRing (s^.focus) (withFocusedBorder $ renderEditor (str . unlines)) (s^.newAddrEditor)]]
 
-eHandler :: AppState -> BrickEvent Name AppEvent -> EventM Name (Next AppState)
+eHandler :: AppState -> BrickEvent Name VMCMixerUIEvent -> EventM Name (Next AppState)
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '-') [])) =
   continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar 'q') [])) = halt s
@@ -83,7 +85,7 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
 
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s
 
-app :: App AppState AppEvent Name
+app :: App AppState VMCMixerUIEvent Name
 app = App { appDraw = ui
           , appChooseCursor = neverShowCursor
           , appHandleEvent  = eHandler
@@ -91,5 +93,6 @@ app = App { appDraw = ui
           , appAttrMap      = const vmcmAttrmap
           }
 
-initialState = AppState (list InputStreams V.empty 2)
-               (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor])
+initialState :: BChan VMCMixerUIEvent -> AppState
+initialState evEmitterCh = AppState (list InputStreams V.empty 2)
+               (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor]) evEmitterCh
