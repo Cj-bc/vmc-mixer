@@ -17,22 +17,24 @@ vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
 import Data.Attoparsec.Text
+import qualified Data.Text as T
 
 data HostName = IPAddress Int Int Int Int
-              | DomainName String
+              | DomainName T.Text
               | Localhost
 
 instance Show HostName where
   show (IPAddress x y z w) = mconcat [show x, ".", show y, ".", show z, ".", show w]
-  show (DomainName s)      = s
+  show (DomainName s)      = T.unpack s
   show Localhost           = "localhost"
 
 parseAddress :: String -> Either String (String, Int)
-parseAddress s = eitherResult $ parse addressWithPort s `feed` ""
+parseAddress s = eitherResult $ parse addressWithPort (T.pack s) `feed` ""
 
-addressWithPort :: Parser (HostName, Int)
+addressWithPort :: Parser (String, Int)
 addressWithPort = do
   n <- hostName
   char ':'
