@@ -40,17 +40,14 @@ import Brick.BChan (BChan, newBChan, readBChan)
 import Pipes.Concurrent
 import Pipes
 
-main = do
-  void $ defaultMain app initialState
-
 {-
 今気をつけなければいけないもの:
 + Asyncをきちんとcancelする
 + Socketをきちんとcloseする
 -}
-main' :: IO ()
-main' = do
-  let inputs   = [("127.0.0.1", 39541), ("192.168.10.3", 39541)]
+main :: IO ()
+main = do
+  let inputs  = [("127.0.0.1", 39542), ("192.168.10.3", 39541)]
       outAddr = ("127.0.0.1", 39540)
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
@@ -69,7 +66,12 @@ main' = do
   output <- async $ withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
                                                          runEffect $ fromInput msgIn >-> sendIt outAddr socket
                                                          performGC
-  void . sequence $ wait <$> (output:inputAsyncs)
+
+  brickCh <- newBChan 1
+  restAsyncs <- async $ mainLoop brickCh msgOut inputAsyncs output
+  defaultMain app (initialState brickCh)
+
+  void $ cancel restAsyncs
 
 -- | Treats brick UI's event and do whatever we need.
 mainLoop :: BChan VMCMixerUIEvent -> Output OSC.Packet -> [((String, Int), Async ())] -> Async () -> IO [Async ()]
