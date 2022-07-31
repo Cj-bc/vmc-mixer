@@ -57,7 +57,7 @@ main' = do
   inputAsyncs <- forM inputs $ \addr -> do
     a <- async $ awaitPacket addr msgOut
     link a
-    return a
+    return (addr, a)
 
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
