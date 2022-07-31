@@ -41,6 +41,7 @@ library
     , microlens
     , microlens-th
     , network
+    , attoparsec
   default-language: Haskell2010
 
 executable vmc-mixer-tui
