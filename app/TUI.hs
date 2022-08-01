@@ -69,7 +69,7 @@ import Pipes
 -}
 main :: IO ()
 main = do
-  let inputs  = [("127.0.0.1", 39542), ("192.168.10.3", 39541)]
+  let inputs  = []
       outAddr = ("127.0.0.1", 39540)
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
