@@ -2,6 +2,19 @@
 
 ** Unreleased changes
 
+** [0.2.2.0]
+*** Changed
++ TUI executable do not support Windows.
+  + This isn't new, it wasn't possible to build on Windows. So it's not majour update.
+
+** [0.2.1.2]
+*** Fixed
++ Wrong word in Github workflow `build_release'
+
+** [0.2.1.1]
+*** Changed
++ Use latest version of brick
+
 ** [0.2.1.0]
 *** Added
 + Github workflow to automatically build binary for each release
