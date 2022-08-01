@@ -1,0 +1,46 @@
+on:
+  push:
+    tags:
+      - "*.*.*.*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+
+      - name: build executable
+        shell: bash
+        run: |
+          stack build
+          find .stack-work -path "*bin/vmc-mixer-tui" -exec mv {} vmc-mixer-tui_${{matrix.os}} \+
+
+      - name: save executable as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vmc-mixer-tui_${{matrix.os}}
+          path: vmc-mixer-tui_${{matrix.os}}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: retrive artifacts
+        id: retrive-artifacts
+        uses: actions/download-artifact@v2
+      - name: do Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          files: |
+              ${{steps.retrive-artifacts.outputs.download-path}}/**/vmc-mixer*
+              LICENSE
