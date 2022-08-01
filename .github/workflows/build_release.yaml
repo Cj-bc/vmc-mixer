@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           stack build
-          find .stack-work -path "*bin/vmc-mixer-tui" -exec mv {} vmc-mixer-tui_${{matrix.os}} \+
+          find .stack-work -path "*bin/vmc-mixer-tui" -exec mv {} vmc-mixer-tui_${{matrix.os}} \;
 
       - name: save executable as artifact
         uses: actions/upload-artifact@v2
