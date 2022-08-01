@@ -6,12 +6,13 @@
 等に便利です。
 
 ** 使い方
-*** 1. このレポジトリをクローンする
-現在、vmc-mixerのバイナリは用意してありません。
-このレポジトリをどこかにクローンしてください。
+*** 1. vmc-mixerのバイナリを入手する
+[[https://github.com/Cj-bc/vmc-mixer/releases][releases]]ページから各リリース用のバイナリを取得するか、自分でビルドすることができます:
 
 #+begin_src sh
   git clone https://github.com/Cj-bc/vmc-mixer
+  cd vmc-mixer
+  stack build
 #+end_src
 
 *** 2. vmc-mixerを起動する

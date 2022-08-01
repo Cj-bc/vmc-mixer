@@ -5,12 +5,14 @@ Mix several VMCP compatible streams into one stream.
 Useful if you want to use number of tools to control one VRM model.
 
 ** Usage
-*** 1. Clone this repo
-Currently, I don't offer binary version of vmc-mixer.
-Please clone this to somewhere.
+*** 1. Get vmc-mixer binary
+You can get binary from [[https://github.com/Cj-bc/vmc-mixer/releases][releases]] page for each release,
+or you can build it by yourself:
 
 #+begin_src sh
   git clone https://github.com/Cj-bc/vmc-mixer
+  cd vmc-mixer
+  stack build
 #+end_src
 
 *** 2. Launch vmc-mixer
