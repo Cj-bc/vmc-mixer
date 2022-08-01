@@ -1,3 +1,18 @@
 * Changelog for vmc-mixer
 
 ** Unreleased changes
+
+** [0.2.0.0]
+*** Added
++ TUI for interactively add/remove input streams.
++ TUI accepts ~hostname:port~ format.
+  + ~hostname~ can be one of: IP address, domain name, "localhost".
+  + Domain name validation isn't completed yet.
+*** Removed
++ Hard coded input stream addresses
+
+** [0.1.0.0]
+*** Added
++ Capability to accept multiple input streams
++ Capability to send received packets
++ Hard code input & output addresses
