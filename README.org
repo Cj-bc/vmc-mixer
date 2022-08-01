@@ -29,7 +29,7 @@ Also, launch your VMC marionettes (which sends motion information by VMCP messag
 Please launch them with different port number specified.
 
 *** 4. Add input addresses
-Focus on ~new address event~ by pressing ~tab~ key, and type new address that
+Focus on ~new address editor~ by pressing ~tab~ key, and type new address that
 you want vmc-mixer to receive VMCP message from.
 
 The format is ~ADDRESS:PORT_NUMBER~.
