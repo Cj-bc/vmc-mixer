@@ -17,6 +17,7 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.org
+    JA-README.org
     ChangeLog.org
 
 source-repository head

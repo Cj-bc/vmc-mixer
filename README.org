@@ -1,3 +1,5 @@
+[[./JA-README.org][日本語版はこちら]]
+
 * vmc-mixer
 Mix several VMCP compatible streams into one stream.
 Useful if you want to use number of tools to control one VRM model.
