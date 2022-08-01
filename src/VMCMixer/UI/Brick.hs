@@ -23,7 +23,7 @@ import Brick
 import Brick.BChan (BChan, writeBChan)
 import Brick.Focus (FocusRing, focusNext, focusPrev, focusRing, withFocusRing, focusGetCurrent)
 import Brick.Widgets.Core (str, (<+>))
-import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected)
+import Brick.Widgets.List (renderList, List, list, handleListEvent, listInsert, listRemove, listSelected, listSelectedElement)
 import Brick.Widgets.Edit (editor, Editor, handleEditorEvent, renderEditor, getEditContents, applyEdit)
 import Brick.Widgets.Border (border, borderAttr)
 import Control.Monad.IO.Class (liftIO)
@@ -69,7 +69,11 @@ ui s = [vBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAd
 
 eHandler :: AppState -> BrickEvent Name VMCMixerUIEvent -> EventM Name (Next AppState)
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '-') [])) =
-  continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
+  case (listSelectedElement $ s^.inputStreams) of
+    Nothing -> continue s
+    Just (idx, (host, port)) -> do
+      liftIO $ writeBChan (s^.uiEventEmitter) (RemoveAddr host port)
+      continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar 'q') [])) = halt s
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '\t') []))  = continue $ s&focus%~focusNext
 eHandler s (VtyEvent (Vty.EvKey Vty.KBackTab []))     = continue $ s&focus%~focusPrev
