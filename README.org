@@ -3,13 +3,77 @@ Mix several VMCP compatible streams into one stream.
 Useful if you want to use number of tools to control one VRM model.
 
 ** Usage
+*** 1. Clone this repo
+Currently, I don't offer binary version of vmc-mixer.
+Please clone this to somewhere.
 
+#+begin_src sh
+  git clone https://github.com/Cj-bc/vmc-mixer
+#+end_src
 
+*** 2. Launch vmc-mixer
+In this repository root, launch vmc-mixer by ~stack run~.
+It should compile vmc-mixer and opens TUI.
 
+(Other user interfaces will be available later)
 
+*** 3. Launch your Marionettes and performers
+vmc-mixer will send packets to ~localhost:39540~.
+(This is hardcoded for now, but will be configurable later.)
 
+So please launch your VMC performer at 39540 port.
+If it is difficult, you can tweak vmc-mixer's source code.
+(You should change ~outAddr~ variable in ~main~ function in ~app/TUI.hs~)
 
+Also, launch your VMC marionettes (which sends motion information by VMCP message).
+Please launch them with different port number specified.
 
+*** 4. Add input addresses
+Focus on ~new address event~ by pressing ~tab~ key, and type new address that
+you want vmc-mixer to receive VMCP message from.
 
+The format is ~ADDRESS:PORT_NUMBER~.
 
+For example, if you want to recieve packets from ~127.0.0.1~ by using port 3305,
+You can type either:
+
++ ~127.0.0.1:3305~
++ ~localhost:3305~
+
+It accept domain name, but it doesn't gurantee that is valid.
+I only tested IP address and "localhost" domain name by myself.
+
+*** 5. Done! it should be working
+It should be working right now.
+If it doesn't, please check your firewall settings first.
+Those ports might be blocked.
+
+** UI keybind
+Current UI have two widgets.
+
+*** General keybinds
+There are some keybindings that is active in
+any state.
+
+| Key   | action               |
+|-------+----------------------|
+| ~Tab~ | focus on next widget |
+
+*** Input Connection list
+The widget above is input connection list.
+It shows all input addresses available.
+
+| Key          | action                     |
+|--------------+----------------------------|
+| ~-~          | Remove selected connection |
+| ~Up arrow~   | select above               |
+| ~Down arrow~ | select below               |
+
+*** New address editor
+The widget at bottom is new address editor.
+You can use this to insert new address.
+
+| Key     | action              |
+|---------+---------------------|
+| ~Enter~ | confirm the address |
 
