@@ -76,12 +76,6 @@ main = do
   -- go through.
   (msgOut, msgIn) <- spawn unbounded
 
-  -- Create 'Async's for each input socket.
-  inputAsyncs <- forM inputs $ \addr -> do
-    a <- async $ awaitPacket addr msgOut
-    link a
-    return (addr, a)
-
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
   -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
@@ -90,7 +84,7 @@ main = do
                                                          performGC
 
   brickCh <- newBChan 1
-  restAsyncs <- async $ mainLoop brickCh msgOut inputAsyncs output
+  restAsyncs <- async $ mainLoop brickCh msgOut [] output
   defaultMain app (initialState brickCh)
 
   void $ cancel restAsyncs
