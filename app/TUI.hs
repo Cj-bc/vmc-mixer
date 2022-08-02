@@ -25,10 +25,7 @@ please let me know by opening issue.
 Illustration below describes how it's structured:
 
 @
-Main thread -+- receiver
-             |- receiver
-             |...
-             |- Event manager -+- receiver
+Main thread --- Event manager -+- receiver
                                |- receiver
                                |...
 @
