@@ -39,25 +39,15 @@ Main thread --- Event manager -+- receiver
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Main where
 
-import Control.Concurrent.Async (mapConcurrently, async, link, wait, Async, cancel)
-import Control.Exception (bracket)
-import Control.Monad (void, forever, forM)
-import Control.Monad.Trans.State (execStateT, StateT(..), modify', get)
-import Data.List (find)
-import qualified Data.Vector as V
-import qualified Sound.OSC as OSC
-import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, close)
-import Sound.OSC.Transport.FD.UDP (udpServer, udp_server, sendTo, udpSocket)
-
-import qualified Network.Socket as N
-import VMCMixer.UI.Brick.Attr
+import Control.Concurrent.Async (async, Async, cancel)
+import Control.Monad (void)
 import VMCMixer.UI.Brick.Event
-import VMCMixer.UI.Brick (app, AppState(..), Name(..), initialState)
+import VMCMixer.UI.Brick (app, initialState)
+import VMCMixer.Backend (mainLoop, sendIt)
 import Brick (defaultMain)
 import Brick.BChan (BChan, newBChan, readBChan)
 
 import Pipes.Concurrent
-import Pipes
 
 {-
 今気をつけなければいけないもの:
@@ -84,48 +74,3 @@ main = do
 
   void $ cancel restAsyncs
 
--- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> Async () -> IO [Async ()]
-mainLoop readUIEvent packetOutput outputAsync =  return . fmap snd =<< execStateT go []
-  where
-    go :: StateT [((String, Int), Async ())] IO ()
-    go = forever $ do
-      msg <- liftIO readUIEvent
-      case msg of
-        NewAddr host port -> do
-          a <- liftIO . async $ awaitPacket (host, port) packetOutput
-          liftIO $ link a
-          modify' (\l -> ((host, port), a):l)
-          -- TODO: Let brick know that work is done by emitting Msg
-        RemoveAddr host port -> do
-          s <- get
-          case find ((== (host, port)) . fst) s of
-            Nothing -> pure ()
-            Just (_, asyncObj) -> do
-              liftIO $ cancel asyncObj
-              modify' $ filter ((/= (host, port)) . fst)
-
-      
-
-sendIt :: (String, Int) -> Input OSC.Packet -> IO ()
-sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
-              $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
-                           >> performGC
--- | Awaits from given 'Input', and send it to given Address.
-sendIt' :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
-sendIt' (host, port) socket = forever $ do
-  packet <- await
-  let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
-
-  -- I needed to use 'sendTo' instead of 'send' so that it does not requiire to have connection.
-  --
-  -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
-  -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
-  i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port))
-  liftIO $ sendTo socket packet (N.addrAddress i)
-
-awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
-awaitPacket addr output =
-  withTransport (uncurry udpServer $ addr) $ \socket -> do
-    runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
-    performGC

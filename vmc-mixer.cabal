@@ -28,6 +28,7 @@ library
         VMCMixer.UI.Brick
   exposed-modules:
       VMCMixer.Parser
+      VMCMixer.Backend
   other-modules:
       Paths_vmc_mixer
   hs-source-dirs:
@@ -45,6 +46,11 @@ library
     , network
     , attoparsec
     , text
+    , hosc
+    , transformers
+    , async
+    , pipes-concurrency
+    , pipes
   default-language: Haskell2010
 
 executable vmc-mixer-tui
@@ -61,12 +67,8 @@ executable vmc-mixer-tui
     , vmc-mixer
     , hosc
     , brick
-    , vector
     , async
     , pipes-concurrency
-    , pipes
-    , network
-    , transformers
   default-language: Haskell2010
 
 test-suite vmc-mixer-test
