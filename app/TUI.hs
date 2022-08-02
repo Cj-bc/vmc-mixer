@@ -84,14 +84,14 @@ main = do
                                                          performGC
 
   brickCh <- newBChan 1
-  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut [] output
+  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut output
   defaultMain app (initialState brickCh)
 
   void $ cancel restAsyncs
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [((String, Int), Async ())] -> Async () -> IO [Async ()]
-mainLoop readUIEvent packetOutput initialInputs outputAsync =  return . fmap snd =<< execStateT go initialInputs
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> Async () -> IO [Async ()]
+mainLoop readUIEvent packetOutput outputAsync =  return . fmap snd =<< execStateT go []
   where
     go :: StateT [((String, Int), Async ())] IO ()
     go = forever $ do
