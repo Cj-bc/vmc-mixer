@@ -76,9 +76,7 @@ main = do
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
   -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
-  output <- async $ withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
-                                                         runEffect $ fromInput msgIn >-> sendIt outAddr socket
-                                                         performGC
+  output <- async $ sendIt outAddr msgIn
 
   brickCh <- newBChan 1
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut output
@@ -109,9 +107,13 @@ mainLoop readUIEvent packetOutput outputAsync =  return . fmap snd =<< execState
 
       
 
+sendIt :: (String, Int) -> Input OSC.Packet -> IO ()
+sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
+              $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
+                           >> performGC
 -- | Awaits from given 'Input', and send it to given Address.
-sendIt :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
-sendIt (host, port) socket = forever $ do
+sendIt' :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
+sendIt' (host, port) socket = forever $ do
   packet <- await
   let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
 
