@@ -37,9 +37,9 @@ library
   if !os(windows)
      build-depends:
         brick
+      , vty
   build-depends:
       base >=4.7 && <5
-    , vty
     , vector
     , text-zipper
     , microlens
