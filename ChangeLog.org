@@ -2,6 +2,20 @@
 
 ** Unreleased changes
 
+** [0.3.0.0]
+*** Added
++ CLI version app
++ New module: ~VMCMixer.Options~, vmc-mixer's command line options
++ New module: ~VMCMixer.Backend~, moved UI-indemendent code from ~app/TUI.hs~
+*** Changed
++ Some code of ~app/TUI.hs~ is now moved to ~VMCMixer.Backend~
++ ~VMCMixer.Backend.mainLoop~ type signature is changed:
+  + Doesn't accept ~initialInputs~ as argument
+  + Require ~IO VMCMixerUIEvent~ instead of ~Brick VMCMixerUIEvent~
+
+*** Fixed
++ :Windows: Library does not depends on vty on Windows
+
 ** [0.2.2.0]
 *** Changed
 + TUI executable do not support Windows.
