@@ -69,7 +69,7 @@ main = do
   output <- async $ sendIt outAddr msgIn
 
   brickCh <- newBChan 1
-  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut output
+  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut
   defaultMain app (initialState brickCh)
 
   void $ cancel restAsyncs

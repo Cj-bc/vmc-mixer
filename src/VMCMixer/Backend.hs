@@ -26,8 +26,8 @@ import Pipes
 import VMCMixer.UI.Brick.Event
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> Async () -> IO [Async ()]
-mainLoop readUIEvent packetOutput outputAsync =  return . fmap snd =<< execStateT go []
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> IO [Async ()]
+mainLoop readUIEvent packetOutput =  return . fmap snd =<< execStateT go []
   where
     go :: StateT [((String, Int), Async ())] IO ()
     go = forever $ do
