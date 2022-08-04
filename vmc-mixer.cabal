@@ -71,6 +71,7 @@ executable vmc-mixer-tui
     , brick
     , async
     , pipes-concurrency
+    , microlens
   default-language: Haskell2010
 
 executable vmc-mixer-cli

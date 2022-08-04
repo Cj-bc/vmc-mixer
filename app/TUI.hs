@@ -44,10 +44,13 @@ import Control.Monad (void)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.UI.Brick (app, initialState)
 import VMCMixer.Backend (mainLoop, sendIt)
+import VMCMixer.Options (getOption)
+import qualified VMCMixer.Options as Opt
 import Brick (defaultMain)
 import Brick.BChan (BChan, newBChan, readBChan)
 
 import Pipes.Concurrent
+import Lens.Micro ((^.))
 
 {-
 今気をつけなければいけないもの:
@@ -56,8 +59,9 @@ import Pipes.Concurrent
 -}
 main :: IO ()
 main = do
-  let inputs  = []
-      outAddr = ("127.0.0.1", 39540)
+  opts <- getOption
+  let inputs  = opts^.Opt.inputs
+      outAddr = opts^.Opt.out
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.
@@ -69,8 +73,8 @@ main = do
   output <- async $ sendIt outAddr msgIn
 
   brickCh <- newBChan 1
-  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut
-  defaultMain app (initialState brickCh)
+  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut inputs
+  defaultMain app (initialState brickCh inputs)
 
   void $ cancel restAsyncs
 
