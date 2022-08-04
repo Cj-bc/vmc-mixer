@@ -14,7 +14,7 @@ Those functions are separated from UI.
 module VMCMixer.Backend where
 
 import Control.Concurrent.Async (async, link, Async, cancel)
-import Control.Monad (forever)
+import Control.Monad (forever, forM_)
 import Control.Monad.Trans.State (execStateT, StateT(..), modify', get)
 import Data.List (find)
 import qualified Sound.OSC as OSC
@@ -26,17 +26,23 @@ import Pipes
 import VMCMixer.UI.Brick.Event
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> IO [Async ()]
-mainLoop readUIEvent packetOutput =  return . fmap snd =<< execStateT go []
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [(String, Int)] -> IO [Async ()]
+mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
+    spawn :: (String, Int) -> StateT [((String, Int), Async ())] IO ()
+    spawn address = do
+      a <- liftIO . async $ awaitPacket address packetOutput
+      liftIO $ link a
+      modify' (\l -> (address, a):l)
+
+    spawnInitials :: StateT [((String, Int), Async ())] IO ()
+    spawnInitials = forM_ initialInputs spawn
+
     go :: StateT [((String, Int), Async ())] IO ()
     go = forever $ do
       msg <- liftIO readUIEvent
       case msg of
-        NewAddr host port -> do
-          a <- liftIO . async $ awaitPacket (host, port) packetOutput
-          liftIO $ link a
-          modify' (\l -> ((host, port), a):l)
+        NewAddr host port -> spawn (host, port)
           -- TODO: Let brick know that work is done by emitting Msg
         RemoveAddr host port -> do
           s <- get
