@@ -106,6 +106,6 @@ app = App { appDraw = ui
           , appAttrMap      = const vmcmAttrmap
           }
 
-initialState :: BChan VMCMixerUIEvent -> AppState
-initialState evEmitterCh = AppState (list InputStreams V.empty 2)
+initialState :: BChan VMCMixerUIEvent -> [(String, Int)] -> AppState
+initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList initialInputs) 2)
                (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor]) evEmitterCh
