@@ -4,6 +4,8 @@
 Mix several VMCP compatible streams into one stream.
 Useful if you want to use number of tools to control one VRM model.
 
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/d_qsC2fl_Wo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ** Usage
 There're two version of UI.
 

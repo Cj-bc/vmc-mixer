@@ -5,6 +5,8 @@
 複数のツールを用いて一つのモデル(一つのPerformer)を操作したい時
 等に便利です。
 
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/d_qsC2fl_Wo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ** 使い方
 現在2種類のUIが用意されています。
 
