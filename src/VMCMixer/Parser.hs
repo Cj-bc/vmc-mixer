@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 {-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
+import Control.Monad (fail, when)
 import Data.Attoparsec.Text as AT
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
@@ -33,6 +34,10 @@ instance Show HostName where
 
 parseAddress :: String -> Either String (String, Int)
 parseAddress s = eitherResult $ parse addressWithPort (T.pack s) `feed` ""
+
+-- | Non standard ports are required.
+parsePort :: String -> Either String Int
+parsePort s = eitherResult $ parse validPortNumber (T.pack s) `feed` ""
 
 -- | Int parser with port number range validation.
 --
