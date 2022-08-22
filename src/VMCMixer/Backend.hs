@@ -30,10 +30,10 @@ mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Int] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
     spawn :: Int -> StateT [(Int, Async ())] IO ()
-    spawn address = do
-      a <- liftIO . async $ awaitPacket address packetOutput
+    spawn inPort = do
+      a <- liftIO . async $ awaitPacket inPort packetOutput
       liftIO $ link a
-      modify' (\l -> (address, a):l)
+      modify' (\l -> (inPort, a):l)
 
     spawnInitials :: StateT [(Int, Async ())] IO ()
     spawnInitials = forM_ initialInputs spawn
@@ -74,7 +74,7 @@ sendIt' (host, port) socket = forever $ do
 
 
 awaitPacket :: Int -> Output OSC.Packet -> IO ()
-awaitPacket addr output =
-  withTransport (udpServer "localhost" addr) $ \socket -> do
+awaitPacket inPort output =
+  withTransport (udpServer "localhost" inPort) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
     performGC
