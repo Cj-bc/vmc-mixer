@@ -26,31 +26,31 @@ import Pipes
 import VMCMixer.UI.Brick.Event
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [(String, Int)] -> IO [Async ()]
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Int] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
-    spawn :: (String, Int) -> StateT [((String, Int), Async ())] IO ()
-    spawn address = do
-      a <- liftIO . async $ awaitPacket address packetOutput
+    spawn :: Int -> StateT [(Int, Async ())] IO ()
+    spawn inPort = do
+      a <- liftIO . async $ awaitPacket inPort packetOutput
       liftIO $ link a
-      modify' (\l -> (address, a):l)
+      modify' (\l -> (inPort, a):l)
 
-    spawnInitials :: StateT [((String, Int), Async ())] IO ()
+    spawnInitials :: StateT [(Int, Async ())] IO ()
     spawnInitials = forM_ initialInputs spawn
 
-    go :: StateT [((String, Int), Async ())] IO ()
+    go :: StateT [(Int, Async ())] IO ()
     go = forever $ do
       msg <- liftIO readUIEvent
       case msg of
-        NewAddr host port -> spawn (host, port)
+        NewAddr port -> spawn port
           -- TODO: Let brick know that work is done by emitting Msg
-        RemoveAddr host port -> do
+        RemoveAddr port -> do
           s <- get
-          case find ((== (host, port)) . fst) s of
+          case find ((== port) . fst) s of
             Nothing -> pure ()
             Just (_, asyncObj) -> do
               liftIO $ cancel asyncObj
-              modify' $ filter ((/= (host, port)) . fst)
+              modify' $ filter ((/= port) . fst)
 
 
 sendIt :: (String, Int) -> Input OSC.Packet -> IO ()
@@ -73,8 +73,8 @@ sendIt' (host, port) socket = forever $ do
 
 
 
-awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
-awaitPacket addr output =
-  withTransport (uncurry udpServer $ addr) $ \socket -> do
+awaitPacket :: Int -> Output OSC.Packet -> IO ()
+awaitPacket inPort output =
+  withTransport (udpServer "localhost" inPort) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
     performGC

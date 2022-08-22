@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 {-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
+import Control.Monad (fail, when)
 import Data.Attoparsec.Text as AT
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
@@ -34,11 +35,29 @@ instance Show HostName where
 parseAddress :: String -> Either String (String, Int)
 parseAddress s = eitherResult $ parse addressWithPort (T.pack s) `feed` ""
 
+-- | Non standard ports are required.
+parsePort :: String -> Either String Int
+parsePort s = eitherResult $ parse validPortNumber (T.pack s) `feed` ""
+
+-- | Int parser with port number range validation.
+--
+-- port number range is defined by RFC6335.
+-- Although it's not encoradged to use 0-1023 which is defined as "System ports",
+-- I decided not to limit it as it's not forced.
+--
+-- https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml
+-- https://www.rfc-editor.org/rfc/rfc6335.html#section-6
+validPortNumber :: Parser Int
+validPortNumber = do
+      num <- decimal
+      when (num < 0 || 65535 < num) $ fail "number isn't in valid range (0~65535)"
+      return num
+
 addressWithPort :: Parser (String, Int)
 addressWithPort = do
   n <- hostName
   char ':'
-  p <- decimal
+  p <- validPortNumber
   return (show n, p)
 
 hostName :: Parser HostName
