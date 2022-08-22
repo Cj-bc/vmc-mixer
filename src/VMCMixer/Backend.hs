@@ -75,6 +75,6 @@ sendIt' (host, port) socket = forever $ do
 
 awaitPacket :: Int -> Output OSC.Packet -> IO ()
 awaitPacket addr output =
-  withTransport (uncurry udpServer $ addr) $ \socket -> do
+  withTransport (udpServer "localhost" addr) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
     performGC
