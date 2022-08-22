@@ -26,19 +26,19 @@ import Pipes
 import VMCMixer.UI.Brick.Event
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [(String, Int)] -> IO [Async ()]
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Int] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
-    spawn :: (String, Int) -> StateT [((String, Int), Async ())] IO ()
+    spawn :: Int -> StateT [(Int, Async ())] IO ()
     spawn address = do
       a <- liftIO . async $ awaitPacket address packetOutput
       liftIO $ link a
       modify' (\l -> (address, a):l)
 
-    spawnInitials :: StateT [((String, Int), Async ())] IO ()
+    spawnInitials :: StateT [(Int, Async ())] IO ()
     spawnInitials = forM_ initialInputs spawn
 
-    go :: StateT [((String, Int), Async ())] IO ()
+    go :: StateT [(Int, Async ())] IO ()
     go = forever $ do
       msg <- liftIO readUIEvent
       case msg of
@@ -73,7 +73,7 @@ sendIt' (host, port) socket = forever $ do
 
 
 
-awaitPacket :: (String, Int) -> Output OSC.Packet -> IO ()
+awaitPacket :: Int -> Output OSC.Packet -> IO ()
 awaitPacket addr output =
   withTransport (uncurry udpServer $ addr) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output

@@ -26,7 +26,7 @@ import VMCMixer.Parser (parseAddress)
 import Lens.Micro.TH (makeLenses)
 
 -- | vmc-mixer's command line options
-data Option = Option { _inputs :: [(String, Int)]
+data Option = Option { _inputs :: [Int]
                        -- ^ List of input addresses
                      , _out :: (String, Int)
                        -- ^ Output address
@@ -45,7 +45,7 @@ vmcmixerOpts = Option <$> (many inputAddressList)
                       <*> argument (eitherReader parseAddress) (metavar "output")
 
 -- | Small parser for inputAddress
-inputAddressList :: Parser (String, Int)
+inputAddressList :: Parser Int
 inputAddressList = option (eitherReader parseAddress)
                    (long "inputs" <> short 'i')
 
