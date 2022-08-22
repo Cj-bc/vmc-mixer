@@ -42,15 +42,15 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
     go = forever $ do
       msg <- liftIO readUIEvent
       case msg of
-        NewAddr host port -> spawn (host, port)
+        NewAddr port -> spawn port
           -- TODO: Let brick know that work is done by emitting Msg
-        RemoveAddr host port -> do
+        RemoveAddr port -> do
           s <- get
-          case find ((== (host, port)) . fst) s of
+          case find ((== port) . fst) s of
             Nothing -> pure ()
             Just (_, asyncObj) -> do
               liftIO $ cancel asyncObj
-              modify' $ filter ((/= (host, port)) . fst)
+              modify' $ filter ((/= port) . fst)
 
 
 sendIt :: (String, Int) -> Input OSC.Packet -> IO ()

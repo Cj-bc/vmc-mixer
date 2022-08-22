@@ -37,7 +37,7 @@ import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
-import VMCMixer.Parser (parseAddress)
+import VMCMixer.Parser (parsePort)
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 
@@ -50,7 +50,7 @@ data AppState = AppState { _inputStreams :: List Name Int
 makeLenses ''AppState
 
 renderAddrInfo :: Bool -> Int -> Widget Name
-renderAddrInfo isFocused (addr, port) = (str addr) <+> (str " | ") <+> (str . show $ port)
+renderAddrInfo isFocused = str . show
   where
 
 -- | Draw 'Widget' in border, but with focus-aware attribute
@@ -71,8 +71,8 @@ eHandler :: AppState -> BrickEvent Name VMCMixerUIEvent -> EventM Name (Next App
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '-') [])) =
   case (listSelectedElement $ s^.inputStreams) of
     Nothing -> continue s
-    Just (idx, (host, port)) -> do
-      liftIO $ writeBChan (s^.uiEventEmitter) (RemoveAddr host port)
+    Just (idx, port) -> do
+      liftIO $ writeBChan (s^.uiEventEmitter) (RemoveAddr port)
       continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar 'q') [])) = halt s
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '\t') []))  = continue $ s&focus%~focusNext
@@ -89,11 +89,11 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
   let ed = s^.newAddrEditor
       l  = s^.inputStreams
       ed' = applyEdit Z.clearZipper ed
-  in case (parseAddress . head $ getEditContents ed) of
+  in case (parsePort . head $ getEditContents ed) of
        (Left err) -> return s -- TODO: Display error message on UI.
-       (Right (host, port)) -> do
-         let l' = listInsert 0 (host, port) l
-         liftIO $ writeBChan (s^.uiEventEmitter) (NewAddr host port)
+       (Right port) -> do
+         let l' = listInsert 0 port l
+         liftIO $ writeBChan (s^.uiEventEmitter) (NewAddr port)
          return $ s&(newAddrEditor.~ed').(inputStreams.~l')
 
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s

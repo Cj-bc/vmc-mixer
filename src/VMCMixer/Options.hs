@@ -22,7 +22,7 @@ as some lens have common name.
 {-# LANGUAGE TemplateHaskell #-}
 module VMCMixer.Options where
 import Options.Applicative
-import VMCMixer.Parser (parseAddress)
+import VMCMixer.Parser (parseAddress, parsePort)
 import Lens.Micro.TH (makeLenses)
 
 -- | vmc-mixer's command line options
@@ -46,6 +46,6 @@ vmcmixerOpts = Option <$> (many inputAddressList)
 
 -- | Small parser for inputAddress
 inputAddressList :: Parser Int
-inputAddressList = option (eitherReader parseAddress)
+inputAddressList = option (eitherReader parsePort)
                    (long "inputs" <> short 'i')
 
