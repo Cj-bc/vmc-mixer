@@ -22,6 +22,8 @@ import Control.Monad (fail, when)
 import Data.Attoparsec.Text as AT
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
+import VMCMixer.Types (Performer(..), Marionette(..))
+import Lens.Micro ((%~), _1, _2)
 
 data HostName = IPAddress Int Int Int Int
               | DomainName T.Text
@@ -35,9 +37,21 @@ instance Show HostName where
 parseAddress :: String -> Either String (String, Int)
 parseAddress s = eitherResult $ parse addressWithPort (T.pack s) `feed` ""
 
+parsePerformer :: String -> Either String Performer
+parsePerformer s = eitherResult $ parse performer (T.pack s) `feed` ""
+
+parseMarionette :: String -> Either String Marionette
+parseMarionette s = eitherResult $ parse marionette (T.pack s) `feed` ""
+
 -- | Non standard ports are required.
 parsePort :: String -> Either String Int
 parsePort s = eitherResult $ parse validPortNumber (T.pack s) `feed` ""
+
+performer :: Parser Performer
+performer = Performer . fromInteger . toInteger <$> validPortNumber
+
+marionette :: Parser Marionette
+marionette = uncurry Marionette . (_2%~(fromInteger . toInteger)) <$> addressWithPort
 
 -- | Int parser with port number range validation.
 --
@@ -60,6 +74,9 @@ addressWithPort = do
   p <- validPortNumber
   return (show n, p)
 
+-- | Parser of valid hostnames
+--
+-- /This currently doesn't work because "domainName" accepts any string./
 hostName :: Parser HostName
 hostName = ipAddress <|> localhost <|> domainName 
 

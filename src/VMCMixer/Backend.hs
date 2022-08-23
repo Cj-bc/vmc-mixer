@@ -24,43 +24,47 @@ import qualified Network.Socket as N
 import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
+import VMCMixer.Types (Performer, Marionette, marionetteAddress, marionettePort, performerPort)
+import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Int] -> IO [Async ()]
+mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Performer] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
-    spawn :: Int -> StateT [(Int, Async ())] IO ()
-    spawn inPort = do
-      a <- liftIO . async $ awaitPacket inPort packetOutput
+    spawn :: Performer -> StateT [(Performer, Async ())] IO ()
+    spawn performer = do
+      a <- liftIO . async $ awaitPacket performer packetOutput
       liftIO $ link a
-      modify' (\l -> (inPort, a):l)
+      modify' (\l -> (performer, a):l)
 
-    spawnInitials :: StateT [(Int, Async ())] IO ()
+    spawnInitials :: StateT [(Performer, Async ())] IO ()
     spawnInitials = forM_ initialInputs spawn
 
-    go :: StateT [(Int, Async ())] IO ()
+    go :: StateT [(Performer, Async ())] IO ()
     go = forever $ do
       msg <- liftIO readUIEvent
       case msg of
-        NewAddr port -> spawn port
+        NewAddr p -> spawn p
           -- TODO: Let brick know that work is done by emitting Msg
-        RemoveAddr port -> do
+        RemoveAddr p -> do
           s <- get
-          case find ((== port) . fst) s of
+          case find ((== p) . fst) s of
             Nothing -> pure ()
             Just (_, asyncObj) -> do
               liftIO $ cancel asyncObj
-              modify' $ filter ((/= port) . fst)
+              modify' $ filter ((/= p) . fst)
 
 
-sendIt :: (String, Int) -> Input OSC.Packet -> IO ()
+sendIt :: Marionette -> Input OSC.Packet -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
               $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
                            >> performGC
 
 -- | Awaits from given 'Input', and send it to given Address.
-sendIt' :: (MonadIO m, MonadFail m) => (String, Int) -> OSC.UDP -> Consumer OSC.Packet m ()
-sendIt' (host, port) socket = forever $ do
+sendIt' :: (MonadIO m, MonadFail m) => Marionette -> OSC.UDP -> Consumer OSC.Packet m ()
+sendIt' marionette socket = forever $ do
+  let host = marionette^.marionetteAddress
+      port = marionette^.marionettePort
   packet <- await
   let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
 
@@ -73,8 +77,8 @@ sendIt' (host, port) socket = forever $ do
 
 
 
-awaitPacket :: Int -> Output OSC.Packet -> IO ()
-awaitPacket inPort output =
-  withTransport (udpServer "localhost" inPort) $ \socket -> do
+awaitPacket :: Performer -> Output OSC.Packet -> IO ()
+awaitPacket performer output =
+  withTransport (udpServer "localhost" (performer^.performerPort)) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
     performGC

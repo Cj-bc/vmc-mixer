@@ -30,6 +30,7 @@ library
       VMCMixer.Parser
       VMCMixer.Backend
       VMCMixer.Options
+      VMCMixer.Types
   other-modules:
       Paths_vmc_mixer
   hs-source-dirs:

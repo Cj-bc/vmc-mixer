@@ -1,6 +1,6 @@
 {- |
-Module      :  VMCMixer.UI.Brick.Event
-Description :  Event definition and related functions for brick UI
+Module      :  VMCMixer.Types
+Description :  Common types for VMCMixer
 Copyright   :  (c) Cj.bc-sd a.k.a Cj-bc
 License     :  GPL-3
 Maintainer  :  cj.bc-sd@outlook.jp
@@ -14,15 +14,18 @@ vmc-mixer is free software: you can redistribute it and/or modify it under the t
 vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
-
 -}
+{-# LANGUAGE TemplateHaskell #-}
+module VMCMixer.Types where
+import Data.Text (Text)
+import Network.Socket (PortNumber)
+import Lens.Micro.TH (makeLenses)
 
-module VMCMixer.UI.Brick.Event where
-import VMCMixer.Types (Performer)
+data Performer = Performer { _performerPort :: Int
+                           } deriving (Show, Eq)
+makeLenses ''Performer
 
--- | Events that will be emitted by UI manipulation.
-data VMCMixerUIEvent = NewAddr Performer    -- ^ Emitted when new address is added to the list
-                     | RemoveAddr Performer -- ^ Emitted when any address is removed from the list
-
--- | Events that will be emitted by external thread to notify its work progress.
-data BrickUIResponseEvent = Completed
+data Marionette = Marionette { _marionetteAddress :: String
+                             , _marionettePort :: Int
+                             } deriving (Show, Eq)
+makeLenses ''Marionette
