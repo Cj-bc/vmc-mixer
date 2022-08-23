@@ -22,13 +22,14 @@ as some lens have common name.
 {-# LANGUAGE TemplateHaskell #-}
 module VMCMixer.Options where
 import Options.Applicative
-import VMCMixer.Parser (parseAddress, parsePort)
+import VMCMixer.Parser (parseMarionette, parsePerformer)
+import VMCMixer.Types (Performer, Marionette)
 import Lens.Micro.TH (makeLenses)
 
 -- | vmc-mixer's command line options
-data Option = Option { _inputs :: [Int]
+data Option = Option { _inputs :: [Performer]
                        -- ^ List of input ports
-                     , _out :: (String, Int)
+                     , _out :: Marionette
                        -- ^ Output address
                      } deriving (Show)
 
@@ -42,10 +43,10 @@ getOption = execParser $ info vmcmixerOpts fullDesc
 -- | Parser for vmc-mixer's all options
 vmcmixerOpts :: Parser Option
 vmcmixerOpts = Option <$> (many inputPortList)
-                      <*> argument (eitherReader parseAddress) (metavar "output")
+                      <*> argument (eitherReader parseMarionette) (metavar "output")
 
 -- | Small parser for inputAddress
-inputPortList :: Parser Int
-inputPortList = option (eitherReader parsePort)
+inputPortList :: Parser Performer
+inputPortList = option (eitherReader parsePerformer)
                 (long "inputs" <> short 'i')
 
