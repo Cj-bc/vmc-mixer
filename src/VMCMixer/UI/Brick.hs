@@ -33,11 +33,13 @@ import qualified Graphics.Vty as Vty
 import qualified Graphics.Vty.Attributes.Color as Color
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro ((^.), (&), (%~), (.~), set)
+import Lens.Micro.Extras (view)
 import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
-import VMCMixer.Parser (parsePort)
+import VMCMixer.Parser (parsePerformer)
+import VMCMixer.Types (Performer, Marionette, performerPort)
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 
@@ -50,7 +52,7 @@ data AppState = AppState { _inputStreams :: List Name Performer
 makeLenses ''AppState
 
 renderAddrInfo :: Bool -> Performer -> Widget Name
-renderAddrInfo isFocused = str . show
+renderAddrInfo isFocused = str . show . view performerPort
   where
 
 -- | Draw 'Widget' in border, but with focus-aware attribute
@@ -89,11 +91,11 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
   let ed = s^.newAddrEditor
       l  = s^.inputStreams
       ed' = applyEdit Z.clearZipper ed
-  in case (parsePort . head $ getEditContents ed) of
+  in case (parsePerformer . head $ getEditContents ed) of
        (Left err) -> return s -- TODO: Display error message on UI.
-       (Right port) -> do
-         let l' = listInsert 0 port l
-         liftIO $ writeBChan (s^.uiEventEmitter) (NewAddr port)
+       (Right marionette) -> do
+         let l' = listInsert 0 marionette l
+         liftIO $ writeBChan (s^.uiEventEmitter) (NewAddr marionette)
          return $ s&(newAddrEditor.~ed').(inputStreams.~l')
 
 handleEditorEvent' ev s = handleEditorEvent ev (s^.newAddrEditor) >>= return . flip (set newAddrEditor) s
