@@ -41,7 +41,7 @@ import VMCMixer.Parser (parsePort)
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 
-data AppState = AppState { _inputStreams :: List Name Int
+data AppState = AppState { _inputStreams :: List Name Performer
                          , _inputStreamSockets :: V.Vector Socket
                          , _newAddrEditor :: Editor String Name
                          , _focus :: FocusRing Name
@@ -49,7 +49,7 @@ data AppState = AppState { _inputStreams :: List Name Int
                          }
 makeLenses ''AppState
 
-renderAddrInfo :: Bool -> Int -> Widget Name
+renderAddrInfo :: Bool -> Performer -> Widget Name
 renderAddrInfo isFocused = str . show
   where
 
@@ -106,6 +106,6 @@ app = App { appDraw = ui
           , appAttrMap      = const vmcmAttrmap
           }
 
-initialState :: BChan VMCMixerUIEvent -> [Int] -> AppState
+initialState :: BChan VMCMixerUIEvent -> [Performer] -> AppState
 initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList initialInputs) 2)
                (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor]) evEmitterCh
