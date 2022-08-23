@@ -28,11 +28,11 @@ Please launch them with different port number specified.
 TUI version have interactive user interface on terminal.
 
 **** 1. Launch vmc-mixer-tui
-In this repository root, launch vmc-mixer-tui by ~stack run vmc-mixer-tui <OUTPUT_ADDRESS>~.
+In this repository root, launch vmc-mixer-tui by ~stack run vmc-mixer-tui <MARIONETTE_ADDRESS>~.
 It should compile vmc-mixer-tui and opens TUI.
 
 **** 2. Add input addresses
-Focus on ~new address editor~ by pressing ~tab~ key, and type new address that
+Focus on ~new address editor~ by pressing ~tab~ key, and type new performer address that
 you want vmc-mixer to receive VMCP message from.
 
 The format is ~ADDRESS:PORT_NUMBER~.
@@ -62,7 +62,7 @@ In this repository root, launch vmc-mixer-cli by ~stack run vmc-mixer-cli -- <OP
 You should specify input/output addresses via command line option.
 
 #+begin_src sh
-  Usage: vmc-mixer-cli [-i|--inputs ARG] output
+  Usage: vmc-mixer-cli [-p|--performer ARG] marionette
 #+end_src
 
 For example, if you want to recieve packets from ~127.0.0.1~ by using port 39540

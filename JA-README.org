@@ -29,7 +29,7 @@ Performer(モーションデータを作成して送信するソフトウェア)
 TUI版は、ターミナルでインタラクティブに操作をすることが可能です。
 
 **** 1. vmc-mixer-tuiを立ち上げる
-レポジトリルートで ~stack run vmc-mixer-tui <OUTPUT_ADDRESS>~ で
+レポジトリルートで ~stack run vmc-mixer-tui <MARIONETTE_ADDRESS>~ で
 起動することができます。
 
 
@@ -59,7 +59,7 @@ CLI版は、インタラクティブな操作を一切提供しません。
 MarionetteとPerformerを指定する必要があります。
 
 #+begin_src sh
-  Usage: vmc-mixer-cli [-i|--inputs ARG] output
+  Usage: vmc-mixer-cli [-p|--performer ARG] marionette
 #+end_src
 
 例えば、 ~127.0.0.1~ ポート番号 39540と ~127.0.0.1~ ポート番号 39541
