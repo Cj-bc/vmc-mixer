@@ -60,6 +60,9 @@ addressWithPort = do
   p <- validPortNumber
   return (show n, p)
 
+-- | Parser of valid hostnames
+--
+-- /This currently doesn't work because "domainName" accepts any string./
 hostName :: Parser HostName
 hostName = ipAddress <|> localhost <|> domainName 
 
