@@ -22,10 +22,10 @@ import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 
 data Performer = Performer { _incomingPort :: PortNumber
-                           }
+                           } deriving (Show)
 makeLenses ''Performer
 
 data Marionette = Marionette { _address :: String
                              , _port :: PortNumber
-                             }
+                             } deriving (Show)
 makeLenses ''Marionette
