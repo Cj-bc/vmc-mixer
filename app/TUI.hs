@@ -60,8 +60,8 @@ import Lens.Micro ((^.))
 main :: IO ()
 main = do
   opts <- getOption
-  let inputs  = opts^.Opt.inputs
-      outAddr = opts^.Opt.out
+  let inputs = opts^.Opt.performers
+      outAddr = opts^.Opt.marionette
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.

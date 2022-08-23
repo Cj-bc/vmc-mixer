@@ -27,9 +27,9 @@ import VMCMixer.Types (Performer, Marionette)
 import Lens.Micro.TH (makeLenses)
 
 -- | vmc-mixer's command line options
-data Option = Option { _inputs :: [Performer]
+data Option = Option { _performers :: [Performer]
                        -- ^ List of input ports
-                     , _out :: Marionette
+                     , _marionette :: Marionette
                        -- ^ Output address
                      } deriving (Show)
 

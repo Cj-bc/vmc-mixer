@@ -35,11 +35,10 @@ main = do
   opt <- getOption
   (msgOut, msgIn) <- spawn unbounded
 
-  print $ "Input from: " ++ (show $ opt^.Opt.inputs)
-  print $ "Output to: " ++ (show $ opt^.Opt.out)
+  print $ "Input from: " ++ (show $ opt^.Opt.performers)
 
-  output <- async $ sendIt (opt^.Opt.out) msgIn
-  as <- forM (opt^.Opt.inputs) $ \addr -> do
+  output <- async $ sendIt (opt^.Opt.marionette) msgIn
+  as <- forM (opt^.Opt.performers) $ \addr -> do
     a <- async $ awaitPacket addr msgOut
     link a
     return a
