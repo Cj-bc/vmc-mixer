@@ -18,10 +18,11 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 
 module VMCMixer.UI.Brick.Event where
+import VMCMixer.Types (Performer)
 
 -- | Events that will be emitted by UI manipulation.
-data VMCMixerUIEvent = NewAddr Int -- ^ Emitted when new address is added to the list
-                     | RemoveAddr Int -- ^ Emitted when any address is removed from the list
+data VMCMixerUIEvent = NewAddr Performer    -- ^ Emitted when new address is added to the list
+                     | RemoveAddr Performer -- ^ Emitted when any address is removed from the list
 
 -- | Events that will be emitted by external thread to notify its work progress.
 data BrickUIResponseEvent = Completed
