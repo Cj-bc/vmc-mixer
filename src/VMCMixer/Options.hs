@@ -43,10 +43,10 @@ getOption = execParser $ info vmcmixerOpts fullDesc
 -- | Parser for vmc-mixer's all options
 vmcmixerOpts :: Parser Option
 vmcmixerOpts = Option <$> (many inputPortList)
-                      <*> argument (eitherReader parseMarionette) (metavar "output")
+                      <*> argument (eitherReader parseMarionette) (metavar "marionette")
 
 -- | Small parser for inputAddress
 inputPortList :: Parser Performer
 inputPortList = option (eitherReader parsePerformer)
-                (long "inputs" <> short 'i')
+                (long "performer" <> short 'p')
 
