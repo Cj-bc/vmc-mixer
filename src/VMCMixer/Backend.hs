@@ -79,6 +79,6 @@ sendIt' marionette socket = forever $ do
 
 awaitPacket :: Performer -> Output OSC.Packet -> IO ()
 awaitPacket performer output =
-  withTransport (udpServer "localhost" (performer^.performerPort)) $ \socket -> do
+  withTransport (udp_server (performer^.performerPort)) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
     performGC
