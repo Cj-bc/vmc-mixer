@@ -60,8 +60,8 @@ import Lens.Micro ((^.))
 main :: IO ()
 main = do
   opts <- getOption
-  let inputs = opts^.Opt.performers
-      outAddr = opts^.Opt.marionette
+  let performerAddrs  = opts^.Opt.performers
+      marionetteAddr = opts^.Opt.marionette
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.
@@ -70,11 +70,10 @@ main = do
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
   -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
-  output <- async $ sendIt outAddr msgIn
+  output <- async $ sendIt marionetteAddr msgIn
 
   brickCh <- newBChan 1
-  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut inputs
-  defaultMain app (initialState brickCh inputs)
+  restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs
+  defaultMain app (initialState brickCh performerAddrs)
 
   void $ cancel restAsyncs
-

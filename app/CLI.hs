@@ -38,8 +38,8 @@ main = do
   print $ "Input from: " ++ (show $ opt^.Opt.performers)
 
   output <- async $ sendIt (opt^.Opt.marionette) msgIn
-  as <- forM (opt^.Opt.performers) $ \addr -> do
-    a <- async $ awaitPacket addr msgOut
+  as <- forM (opt^.Opt.performers) $ \p -> do
+    a <- async $ awaitPacket p msgOut
     link a
     return a
   -- forConcurrently_ (opt^.Opt.inputs) $ flip awaitPacket msgOut
