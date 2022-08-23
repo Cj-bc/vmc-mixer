@@ -21,11 +21,11 @@ import Data.Text (Text)
 import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 
-data Performer = Performer { _performerPort :: PortNumber
+data Performer = Performer { _performerPort :: Int
                            } deriving (Show, Eq)
 makeLenses ''Performer
 
 data Marionette = Marionette { _marionetteAddress :: String
-                             , _marionettePort :: PortNumber
+                             , _marionettePort :: Int
                              } deriving (Show, Eq)
 makeLenses ''Marionette
