@@ -2,6 +2,24 @@
 
 ** Unreleased changes
 
+** [0.4.0.0]
+*** Added
++ New basic types: ~Marionette~/~Performer~
++ Parsers for ~Marionette~/~Performer~
++ ~VMCMixer.Types~ module.
++ Some tests for Persers
+*** Changed
++ Command line option: ~--input~ is now ~--performer~, ~~OUTPUT~~ to ~MARIONETTE~
++ Performer names will be visible in TUI.
++ Performer format: ~[name, ]PORT_NUMBER~
++ Marionette format: ~[name, ]ADDRESS:PORT_NUMBER~
++ Documentation update.
++ ~VMCMixer.Backend.mainLoop~ receives initial Performers.
++ ~vmc-mixer-tui~ requires command line options. (same as ~vmc-mixer-cli~)
++ Performer doesn't require to specify host address.
++ ~VMCMixerUIEvent~ contains ~Marionette~/~Performer~
++ Performer and Marionette may have 'name'.
+
 ** [0.3.0.0]
 *** Added
 + CLI version app
