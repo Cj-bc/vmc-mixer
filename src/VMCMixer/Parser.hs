@@ -27,7 +27,7 @@ import Lens.Micro ((%~), _1, _2)
 
 data HostName = IPAddress Int Int Int Int
               | DomainName T.Text
-              | Localhost
+              | Localhost deriving (Eq)
 
 instance Show HostName where
   show (IPAddress x y z w) = mconcat [show x, ".", show y, ".", show z, ".", show w]
@@ -48,10 +48,28 @@ parsePort :: String -> Either String Int
 parsePort s = eitherResult $ parse validPortNumber (T.pack s) `feed` ""
 
 performer :: Parser Performer
-performer = Performer . fromInteger . toInteger <$> validPortNumber
+performer = do
+    name <- option Nothing (try nameField)
+    port <- validPortNumber
+    return $ Performer port name
+  where
+    nameField = do
+      name <- takeTill (== ',')
+      char ','
+      skipSpace
+      return $ Just name
 
 marionette :: Parser Marionette
-marionette = uncurry Marionette . (_2%~(fromInteger . toInteger)) <$> addressWithPort
+marionette = do
+  name <- option Nothing (try nameField)
+  (addr, port) <- addressWithPort
+  return $ Marionette addr port name
+  where
+    nameField = do
+      name <- takeTill (== ',')
+      char ','
+      skipSpace
+      return $ Just name
 
 -- | Int parser with port number range validation.
 --

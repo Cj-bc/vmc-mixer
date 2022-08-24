@@ -16,7 +16,7 @@ vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
 
 -}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module VMCMixer.UI.Brick where
 
 import Brick 
@@ -39,7 +39,7 @@ import Network.Socket (Socket)
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Parser (parsePerformer)
-import VMCMixer.Types (Performer, Marionette, performerPort)
+import VMCMixer.Types (Performer, Marionette, performerPort, performerName)
 
 data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
 
@@ -52,8 +52,9 @@ data AppState = AppState { _inputStreams :: List Name Performer
 makeLenses ''AppState
 
 renderAddrInfo :: Bool -> Performer -> Widget Name
-renderAddrInfo isFocused = str . show . view performerPort
-  where
+renderAddrInfo isFocused performer = hBox [txt . maybe "" id $ view performerName performer
+                                          , str $ " (" ++ (show $ view performerPort performer) ++ ")"
+                                          ]
 
 -- | Draw 'Widget' in border, but with focus-aware attribute
 --
