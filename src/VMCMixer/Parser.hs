@@ -27,7 +27,7 @@ import Lens.Micro ((%~), _1, _2)
 
 data HostName = IPAddress Int Int Int Int
               | DomainName T.Text
-              | Localhost
+              | Localhost deriving (Eq)
 
 instance Show HostName where
   show (IPAddress x y z w) = mconcat [show x, ".", show y, ".", show z, ".", show w]
