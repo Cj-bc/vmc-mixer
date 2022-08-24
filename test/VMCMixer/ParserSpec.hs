@@ -73,6 +73,12 @@ spec = do
     it "should accept 'NAME, PORT_NUMBER' format" $
       performer `tryParse` (T.pack "foo, 300") == Just (Performer 300 (Just $ T.pack "foo"))
 
+    it "should accept 'PORT_NUMBER' format" $
+      performer `tryParse` (T.pack "300") == Just (Performer 300 Nothing)
+
   describe "marionette" $ do
     it "should accept 'NAME, ADDRESS:PORT_NUMBER' format" $
       marionette `tryParse` (T.pack "foo, foobar.org:300") == Just (Marionette "foobar.org" 300 (Just $ T.pack "foo"))
+
+    it "should accept 'ADDRESS:PORT_NUMBER' format" $
+      marionette `tryParse` (T.pack "foobar.org:300") == Just (Marionette "foobar.org" 300 Nothing)
