@@ -14,17 +14,20 @@ Those functions are separated from UI.
 module VMCMixer.Backend where
 
 import Control.Concurrent.Async (async, link, Async, cancel)
-import Control.Monad (forever, forM_)
+import Control.Monad (forever, forM_, join)
 import Control.Monad.Trans.State (execStateT, StateT(..), modify', get)
 import Data.List (find)
 import qualified Sound.OSC as OSC
-import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket)
+import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, sendMessage, recvMessage)
 import Sound.OSC.Transport.FD.UDP (udpServer, udp_server, sendTo)
+import Sound.OSC.Packet (Packet(Packet_Message))
 import qualified Network.Socket as N
 import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Performer, Marionette, marionetteAddress, marionettePort, performerPort)
+import Data.VMCP.Marionette (MarionetteMsg)
+import Data.VMCP.Message (VMCPMessage, fromOSCMessage, toOSCMessage)
 import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
@@ -65,7 +68,7 @@ sendIt' :: (MonadIO m, MonadFail m, VMCPMessage msg) => Marionette -> OSC.UDP ->
 sendIt' marionette socket = forever $ do
   let host = marionette^.marionetteAddress
       port = marionette^.marionettePort
-  packet <- await
+  msg <- await
   let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
 
   -- I needed to use 'sendTo' instead of 'send' so that it does not requiire to have connection.
@@ -73,12 +76,17 @@ sendIt' marionette socket = forever $ do
   -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
   -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
   i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port))
-  liftIO $ sendTo socket packet (N.addrAddress i)
+  liftIO $ sendTo socket (Packet_Message . toOSCMessage $ msg) (N.addrAddress i)
 
 
 
 awaitPacket :: VMCPMessage msg => Performer -> Output msg -> IO ()
 awaitPacket performer output =
   withTransport (udp_server (performer^.performerPort)) $ \socket -> do
-    runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output
+    let recvMsg so =
+          liftIO (recvMessage so)
+          >>= (return . join . fmap fromOSCMessage)
+          >>= maybe (pure ()) yield
+
+    runEffect $ (forever $ recvMsg socket) >-> toOutput output
     performGC
