@@ -28,12 +28,13 @@ import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_)
 import VMCMixer.Options  (getOption)
 import qualified VMCMixer.Options as Opt
 import Lens.Micro ((^.))
-import Pipes.Concurrent (spawn, unbounded)
+import Pipes.Concurrent (spawn, unbounded, Mailbox)
 import Control.Monad (void, forM)
+import Data.VMCP.Marionette (MarionetteMsg)
 
 main = do
   opt <- getOption
-  (msgOut, msgIn) <- spawn unbounded
+  (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox MarionetteMsg)
 
   print $ "Input from: " ++ (show $ opt^.Opt.performers)
 
