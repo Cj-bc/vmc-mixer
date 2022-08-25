@@ -28,7 +28,7 @@ import VMCMixer.Types (Performer, Marionette, marionetteAddress, marionettePort,
 import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output OSC.Packet -> [Performer] -> IO [Async ()]
+mainLoop :: VMCPMessage msg => (IO VMCMixerUIEvent) -> Output msg -> [Performer] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
     spawn :: Performer -> StateT [(Performer, Async ())] IO ()
@@ -55,13 +55,13 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
               modify' $ filter ((/= p) . fst)
 
 
-sendIt :: Marionette -> Input OSC.Packet -> IO ()
+sendIt :: VMCPMessage msg => Marionette -> Input msg -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
               $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
                            >> performGC
 
 -- | Awaits from given 'Input', and send it to given Address.
-sendIt' :: (MonadIO m, MonadFail m) => Marionette -> OSC.UDP -> Consumer OSC.Packet m ()
+sendIt' :: (MonadIO m, MonadFail m, VMCPMessage msg) => Marionette -> OSC.UDP -> Consumer msg m ()
 sendIt' marionette socket = forever $ do
   let host = marionette^.marionetteAddress
       port = marionette^.marionettePort
@@ -77,7 +77,7 @@ sendIt' marionette socket = forever $ do
 
 
 
-awaitPacket :: Performer -> Output OSC.Packet -> IO ()
+awaitPacket :: VMCPMessage msg => Performer -> Output msg -> IO ()
 awaitPacket performer output =
   withTransport (udp_server (performer^.performerPort)) $ \socket -> do
     runEffect $ (forever $ liftIO (recvPacket socket) >>= yield) >-> toOutput output

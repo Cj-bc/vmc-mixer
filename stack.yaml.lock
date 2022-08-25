@@ -3,7 +3,18 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    size: 24149
+    url: https://github.com/Cj-bc/hVMCP/archive/7b033f05f058cbaa5c75bb41d2e3ec03fa2cc042.tar.gz
+    name: hVMCP
+    version: 0.2.0.0
+    sha256: fbe2c6d9ff9adc6461b24bae619dfbe281256f034ea3fad2739c7dd1ad810679
+    pantry-tree:
+      size: 1113
+      sha256: 499696239c69974d074d60d9c06287f90444426ec4742574793fe34b3447c244
+  original:
+    url: https://github.com/Cj-bc/hVMCP/archive/7b033f05f058cbaa5c75bb41d2e3ec03fa2cc042.tar.gz
 snapshots:
 - completed:
     size: 619163
