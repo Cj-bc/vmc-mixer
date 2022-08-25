@@ -41,6 +41,7 @@ module Main where
 
 import Control.Concurrent.Async (async, Async, cancel)
 import Control.Monad (void)
+import Data.VMCP.Marionette (MarionetteMsg)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.UI.Brick (app, initialState)
 import VMCMixer.Backend (mainLoop, sendIt)
@@ -65,7 +66,7 @@ main = do
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.
-  (msgOut, msgIn) <- spawn unbounded
+  (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox MarionetteMsg)
 
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
