@@ -1,0 +1,103 @@
+* Filterの実装方法について
+
+このドキュメントは、 ~VMCMixer.Backend.Filter~ の実装メモです。
+参考程度の情報であるため、日本語のみとなっています。
+
+This documentation is just a memo of implementation of ~VMCMixer.Backend.Filter~.
+As this is't document for others, I won't write this in English.
+
+** 欲しいFilterの要件
+要件といえる程堅いものではないですが、どのような機能が欲しいかを考えます。
+詳しくは [[https://github.com/Cj-bc/vmc-mixer/issues/2][Cj-bc/vmc-mixer#2]]で色々メモが残っていますが、最終的には以下の機能を持つものが
+欲しいことがわかりました。
+
++ 各VMCP Message毎に、どのPerformerプログラムから来たものを使用するのかを決定する
++ 一つのVMCP Messageに対して複数のPerformerプログラムが割り当てられ、優先順位を決めることができる
+
+** 優先順位の決め方
+これは [[https://github.com/Cj-bc/vmc-mixer/issues/2][Cj-bc/vmc-mixer#2]]にて決定したので、それをそのまま引用します
+
+#+begin_quote
+パケットを受け取った時に、前回に通ったパケットがより優先度の高いものだった場合は、新しく来たパケットを破棄する。
+そうでなければ、新しく来たパケットを送信する。
+その後、どちらのケースにしても「前回に通ったパケット」の情報を更新する。
+#+end_quote
+
+** Filterを適用する段階
+VMC-Mixer全体でのOSC Packetの流れは以下のようになっています。
+
+#+begin_example
+[Performer] --> 'awaitPacket' --> 'sendIt' --> [Marionette]
+#+end_example
+
+この中で ~[]~ で囲まれているのは外部のプログラムであるため、
+Filterを適用できるのは ~awaitPacket~ と ~sendIt~ 、そしてその間に新しい
+層を作成する、の三箇所です。
+
+今回は、以下のようなことを踏まえて「新しい層を作成」して実装することにしました。
+
+*** ~awaitPacket~ に実装する場合
+~awaitPacket~ は [[file:~/Documents/ghq/github.com/Cj-bc/vmc-mixer/src/VMCMixer/Backend.hs][VMCMixer.Backend]]にて実装されている関数です。
+
+この関数は ~mainLoop~ から各 ~Performer~ 毎に実行され、 ~Async~ を用いて別スレッド
+(軽量スレッド？)にてPerformerプログラムから送られてくるOSC Packetを受け取る役割を果たします。
+
+
+つまり、この ~awaitPacket~ は ~Performer~ 毎に生成されており、他にどのような
+~Performer~ が使用されていてどのようなOSC Packetが来ているかを知る術はありません。
+(別途新しいチャンネルを作れば不可能ではないですが、複雑になるので今はなしとします)
+
+
+そして、「優先順位を付ける」には他の ~Performer~ が処理しているOSC Packetの内容について知る必要があるため、
+_ここに実装するのはそもそも不可能である_ と考えられます。
+
+*** ~sendIt~ に実装する場合
+~sendIt~ も同様に[[file:~/Documents/ghq/github.com/Cj-bc/vmc-mixer/src/VMCMixer/Backend.hs][VMCMixer.Backend]]にて実装されている関数です。
+
+この関数はアプリケーション起動時にメインスレッドとは別のスレッドを立てて実行され、
+各 ~awaitPacket~ で受け取られたOSC Packetを全て受け取り、順次Marionetteプログラムに送信します。
+
+
+この関数は全てのOSC Packetを受け取るため、それがどの ~Performer~ から来ているのか
+さえ分かれば優先順位を付けることも出来そうです。
+なので、こちらならFilterを実装することが出来そうです。
+
+
+しかし、ここに素直に実装すると「OSC Packetを送信する」「パケットのフィルタリングをする」
+という二つの責務を持つことになり、少し機能過多すぎる気がします。
+
+*** 新しい層を作成する場合
+上2つの考察から、「全ての ~awaitPacket~ を実行しているスレッドから値を受け取り、フィルタリングして
+~sendIt~ に受け渡す」層を作るのが良さそうに思います。
+
+これにより、
+
+** Performerの指定の記録方法
+~Performer~ 型をそのまま仕舞うか、Port番号のみ等にするか。
+~Performer~ 型をそのまま使うのでもいいのだが、現在動いている ~Performer~ と整合性が取れているかの
+保証は出来無いのであまり意味がない気もする。
+
+** Fallbackの扱い
+何も指定されなかった場合はFallbackに指定したPerformerプログラムからの値を利用するようにする。
+これにより、全てを明示的に指定する煩わしさがなくなる。
+
+** Filter型の構造
+
+** Filter型の更新の仕方
+~mainLoop~ -> ~filter~ での値の受け渡しをどうするか。
+
+*** 全体を更新する
+一気に全て更新する。
+多分処理的には一番重くなる？
+がしかし、そんな大量のフィルターを適用するわけでもないので
+パフォーマンスに影響が出る程ではないと考えています。
+
+#+begin_src haskell
+  -- | Command sender to do some action
+  data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filter
+                 | Packet Input MarionetteMsg   -- ^ Packet to send
+#+end_src
+
+*** 変更を行う関数を渡す
+*** パッチを送る
+
