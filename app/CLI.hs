@@ -24,6 +24,7 @@ at launching.
 
 module Main where
 import VMCMixer.Backend (sendIt, awaitPacket)
+import VMCMixer.Backend.Filter (SenderCmd)
 import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_)
 import VMCMixer.Options  (getOption)
 import qualified VMCMixer.Options as Opt
@@ -34,7 +35,7 @@ import Data.VMCP.Marionette (MarionetteMsg)
 
 main = do
   opt <- getOption
-  (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox MarionetteMsg)
+  (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox SenderCmd)
 
   print $ "Input from: " ++ (show $ opt^.Opt.performers)
 
