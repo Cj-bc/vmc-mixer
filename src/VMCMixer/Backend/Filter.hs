@@ -100,9 +100,8 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- It will check
 -- + Where the packet is came from
 -- + Wheather higher-prioritized packet isn't ongoing
-applyFilter :: MonadIO m => Performer -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-applyFilter fbk = do
-  put $ FilterLayerState fbk (Map.empty) (Map.empty)
+applyFilter :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
+applyFilter = do
   forever go
   where
     go :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
