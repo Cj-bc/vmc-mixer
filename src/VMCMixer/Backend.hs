@@ -60,6 +60,8 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
             Just (_, asyncObj) -> do
               liftIO $ cancel asyncObj
               modify' $ filter ((/= p) . fst)
+        UIEventUpdateFilter filter ->
+          runEffect $ yield (UpdateFilter filter) >-> toOutput packetOutput
 
 -- | Run 'sendIt'' with UDP socket bracket.
 -- TODO: @Performer 0 Nothing@ is temporary written here, it should be given by user at runtime.
