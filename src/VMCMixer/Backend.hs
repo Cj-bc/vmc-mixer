@@ -27,7 +27,7 @@ import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Performer, performerPort)
-import VMCMixer.Backend.Sender (sendIt, SenderCmd(..))
+import VMCMixer.Backend.Sender (sendIt')
 import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState))
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
