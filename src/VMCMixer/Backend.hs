@@ -28,6 +28,7 @@ import Pipes
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Performer, performerPort)
 import VMCMixer.Backend.Sender (sendIt, SenderCmd(..))
+import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState))
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 
@@ -71,7 +72,7 @@ awaitPacket performer output =
     let recvMsg so =
           liftIO (recvMessage so)
           >>= (return . join . fmap fromOSCMessage)
-          >>= maybe (pure ()) yield
+          >>= maybe (pure ()) (yield . Packet performer)
 
     runEffect $ (forever $ recvMsg socket) >-> toOutput output
     performGC
