@@ -21,6 +21,7 @@ import Data.Text (Text)
 import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 import qualified Data.VMCP.Marionette as Marionette
+import qualified Data.Map.Strict as Map
 
 data Performer = Performer { _performerPort :: Int
                            , _performerName :: Maybe Text
@@ -69,3 +70,9 @@ extractAddress msg = case msg of
                                                  , "\n"
                                                  , "Please report this to https://github.com/Cj-bc/vmc-mixer/issues"
                                                  ]
+
+-- | Represents one filter
+data Filter = Filter { _fallback :: Performer
+                     , _filters :: Map.Map MarionetteMsgAddresses [Performer] -- ^ Use those 
+                     }
+makeLenses ''Filter

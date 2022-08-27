@@ -43,12 +43,6 @@ import Pipes (Pipe, await, yield)
 import VMCMixer.Types
 
   
--- | Represents one filter
-data Filter = Filter { _fallback :: Performer
-                     , _filters :: Map.Map MarionetteMsgAddresses [Performer] -- ^ Use those 
-                     }
-makeLenses ''Filter
-  
 
 -- | State
 data FilterLayerState = FilterLayerState { _fallback :: Performer
