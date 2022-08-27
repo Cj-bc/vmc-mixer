@@ -27,12 +27,12 @@ import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Performer, performerPort)
-import VMCMixer.Backend.Sender (sendIt)
+import VMCMixer.Backend.Sender (sendIt, SenderCmd(..))
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: VMCPMessage msg => (IO VMCMixerUIEvent) -> Output msg -> [Performer] -> IO [Async ()]
+mainLoop :: VMCPMessage msg => (IO VMCMixerUIEvent) -> Output SenderCmd -> [Performer] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
     spawn :: Performer -> StateT [(Performer, Async ())] IO ()
@@ -59,14 +59,13 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
               modify' $ filter ((/= p) . fst)
 
 -- | Run 'sendIt'' with UDP socket bracket.
-sendIt :: VMCPMessage msg => Marionette -> Input msg -> IO ()
+sendIt :: Marionette -> Input SenderCmd -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
               $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
                            >> performGC
 
 
-
-awaitPacket :: VMCPMessage msg => Performer -> Output msg -> IO ()
+awaitPacket :: Performer -> Output SenderCmd -> IO ()
 awaitPacket performer output =
   withTransport (udp_server (performer^.performerPort)) $ \socket -> do
     let recvMsg so =
