@@ -51,7 +51,6 @@ library
     , attoparsec
     , text
     , hosc
-    , transformers
     , async
     , pipes-concurrency
     , pipes
