@@ -28,8 +28,8 @@ You should have received a copy of the GNU General Public License along with vmc
 module VMCMixer.Backend.Filter where
 import Control.Monad (liftM2, forever)
 import Control.Monad.State.Class
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State.Strict (State)
+import Control.Monad.IO.Class (liftIO, MonadIO)
+import Control.Monad.State.Strict (StateT)
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
 import Data.Maybe (maybe)
@@ -100,12 +100,12 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- It will check
 -- + Where the packet is came from
 -- + Wheather higher-prioritized packet isn't ongoing
-applyFilter :: Performer -> Pipe SenderCmd MarionetteMsg (State FilterLayerState) ()
+applyFilter :: MonadIO m => Performer -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 applyFilter fbk = do
   put $ FilterLayerState fbk (Map.empty) (Map.empty)
   forever go
   where
-    go :: Pipe SenderCmd MarionetteMsg (State FilterLayerState) ()
+    go :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
     go = do
       cmd <- await
       case cmd of
@@ -123,7 +123,7 @@ applyFilter fbk = do
           updatePrev p msgAddr
 
 -- | Apply filter
-applyFilter' :: Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (State FilterLayerState) Bool
+applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
 applyFilter' p msgAddr = do
   fil <- gets (Map.lookup msgAddr .view filters)
   prev <- gets (Map.lookup msgAddr . view previousPerformer)
@@ -140,5 +140,5 @@ applyFilter' p msgAddr = do
 -- | Update
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
-updatePrev :: Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (State FilterLayerState) ()
+updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 updatePrev p msgAddr = modify $ previousPerformer%~(Map.update (const $ Just p) msgAddr)
