@@ -45,14 +45,13 @@ import VMCMixer.Types
   
 
 -- | State
-data FilterLayerState = FilterLayerState { _fallback :: Performer
-                                         , _filters  :: Map.Map MarionetteMsgAddresses [Performer]
+data FilterLayerState = FilterLayerState { _messageFilter :: Filter
                                          , _previousPerformer :: Map.Map MarionetteMsgAddresses Performer
                                          }
 makeLenses ''FilterLayerState
 
 filterLayerInitialState :: Performer -> FilterLayerState
-filterLayerInitialState fallback = FilterLayerState fallback Map.empty Map.empty
+filterLayerInitialState fallback = FilterLayerState (Filter fallback Map.empty) Map.empty
 
 -- | Command sender to do some action
 data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filter
@@ -71,8 +70,8 @@ applyFilter = do
     go = do
       cmd <- await
       case cmd of
-        UpdateFilter (Filter fb fs)
-          modify $ (fallback.~fb).(filters.~fs)
+        UpdateFilter f ->
+          modify $ messageFilter.~f
         Packet p msg -> do
           let msgAddr = extractAddress msg
           shouldYield <- applyFilter' p msgAddr
@@ -85,7 +84,7 @@ applyFilter = do
 -- | Apply filter
 applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
 applyFilter' p msgAddr = do
-  fil <- gets (Map.lookup msgAddr .view filters)
+  fil <- gets (Map.lookup msgAddr .view (messageFilter.filters))
   prev <- gets (Map.lookup msgAddr . view previousPerformer)
   case (fil, prev) of
     -- If filter isn't set, that message should be passed
