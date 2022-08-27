@@ -32,7 +32,7 @@ import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: VMCPMessage msg => (IO VMCMixerUIEvent) -> Output SenderCmd -> [Performer] -> IO [Async ()]
+mainLoop :: (IO VMCMixerUIEvent) -> Output SenderCmd -> [Performer] -> IO [Async ()]
 mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
   where
     spawn :: Performer -> StateT [(Performer, Async ())] IO ()
