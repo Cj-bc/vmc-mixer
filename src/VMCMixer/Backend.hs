@@ -21,12 +21,13 @@ import Control.Concurrent.Async (async, link, Async, cancel)
 import Control.Monad (forever, forM_, join)
 import Control.Monad.State.Strict (execStateT, StateT(..), modify', get)
 import Data.List (find)
+import qualified Data.Map.Strict as Map
 import Sound.OSC.Transport.FD (withTransport, recvMessage)
 import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
-import VMCMixer.Types (Performer, performerPort)
+import VMCMixer.Types (Performer(Performer), performerPort)
 import VMCMixer.Backend.Sender (sendIt')
 import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState))
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
@@ -60,10 +61,12 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
               modify' $ filter ((/= p) . fst)
 
 -- | Run 'sendIt'' with UDP socket bracket.
+-- TODO: @Performer 0 Nothing@ is temporary written here, it should be given by user at runtime.
 sendIt :: Marionette -> Input SenderCmd -> IO ()
-sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
-              $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
-                           >> performGC
+sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
+  flip execStateT (FilterLayerState (Performer 0 Nothing) (Map.empty) (Map.empty))
+    $ runEffect (fromInput msgIn >-> applyFilter  >-> sendIt' addr socket)
+  performGC
 
 
 awaitPacket :: Performer -> Output SenderCmd -> IO ()
