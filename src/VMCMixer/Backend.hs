@@ -11,23 +11,24 @@ Portability :  portable
 Those functions are separated from UI.
 -}
 
-module VMCMixer.Backend where
+module VMCMixer.Backend (
+  mainLoop
+, sendIt
+, awaitPacket
+  ) where
 
 import Control.Concurrent.Async (async, link, Async, cancel)
 import Control.Monad (forever, forM_, join)
 import Control.Monad.Trans.State (execStateT, StateT(..), modify', get)
 import Data.List (find)
-import qualified Sound.OSC as OSC
-import Sound.OSC.Transport.FD (Transport, withTransport, sendPacket, recvPacket, sendMessage, recvMessage)
-import Sound.OSC.Transport.FD.UDP (udpServer, udp_server, sendTo)
-import Sound.OSC.Packet (Packet(Packet_Message))
-import qualified Network.Socket as N
+import Sound.OSC.Transport.FD (withTransport, recvMessage)
+import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
-import VMCMixer.Types (Performer, Marionette, marionetteAddress, marionettePort, performerPort)
-import Data.VMCP.Marionette (MarionetteMsg)
-import Data.VMCP.Message (VMCPMessage, fromOSCMessage, toOSCMessage)
+import VMCMixer.Types (Performer, performerPort)
+import VMCMixer.Backend.Sender (sendIt)
+import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 
 -- | Treats brick UI's event and do whatever we need.
@@ -57,26 +58,11 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
               liftIO $ cancel asyncObj
               modify' $ filter ((/= p) . fst)
 
-
+-- | Run 'sendIt'' with UDP socket bracket.
 sendIt :: VMCPMessage msg => Marionette -> Input msg -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort)
               $ \socket -> runEffect (fromInput msgIn >-> sendIt' addr socket)
                            >> performGC
-
--- | Awaits from given 'Input', and send it to given Address.
-sendIt' :: (MonadIO m, MonadFail m, VMCPMessage msg) => Marionette -> OSC.UDP -> Consumer msg m ()
-sendIt' marionette socket = forever $ do
-  let host = marionette^.marionetteAddress
-      port = marionette^.marionettePort
-  msg <- await
-  let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
-
-  -- I needed to use 'sendTo' instead of 'send' so that it does not requiire to have connection.
-  --
-  -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
-  -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
-  i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port))
-  liftIO $ sendTo socket (Packet_Message . toOSCMessage $ msg) (N.addrAddress i)
 
 
 
