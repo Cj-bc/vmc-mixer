@@ -44,8 +44,11 @@ import VMCMixer.Types
 
   
 -- | Represents one filter
-data Filter = Filter MarionetteMsgAddresses [Performer] -- ^ Use those 
-            | FallbackFilter Performer
+data Filter = Filter { _fallback :: Performer
+                     , _filters :: Map.Map MarionetteMsgAddresses [Performer] -- ^ Use those 
+                     }
+makeLenses ''Filter
+  
 
 -- | State
 data FilterLayerState = FilterLayerState { _fallback :: Performer
@@ -74,10 +77,8 @@ applyFilter = do
     go = do
       cmd <- await
       case cmd of
-        UpdateFilter (Filter msg ps) ->
-          modify $ filters%~(Map.update (const $ Just ps) msg)
-        UpdateFilter (FallbackFilter p) ->
-          modify $ fallback.~p
+        UpdateFilter (Filter fb fs)
+          modify $ (fallback.~fb).(filters.~fs)
         Packet p msg -> do
           let msgAddr = extractAddress msg
           shouldYield <- applyFilter' p msgAddr
