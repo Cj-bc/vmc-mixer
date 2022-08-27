@@ -27,11 +27,12 @@ import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
 import Pipes
 import VMCMixer.UI.Brick.Event
-import VMCMixer.Types (Performer(Performer), performerPort)
+import VMCMixer.Types (Marionette, Performer(Performer), performerPort)
 import VMCMixer.Backend.Sender (sendIt')
 import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState))
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
+import qualified Network.Socket as N
 
 -- | Treats brick UI's event and do whatever we need.
 mainLoop :: (IO VMCMixerUIEvent) -> Output SenderCmd -> [Performer] -> IO [Async ()]
