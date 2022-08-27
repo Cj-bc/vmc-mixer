@@ -65,7 +65,7 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
 -- TODO: @Performer 0 Nothing@ is temporary written here, it should be given by user at runtime.
 sendIt :: Marionette -> Input SenderCmd -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
-  flip execStateT (FilterLayerState (Performer 0 Nothing) (Map.empty) (Map.empty))
+  flip execStateT (filterLayerInitialState $ Performer 0 Nothing)
     $ runEffect (fromInput msgIn >-> applyFilter  >-> sendIt' addr socket)
   performGC
 

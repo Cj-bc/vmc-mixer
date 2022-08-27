@@ -54,6 +54,9 @@ data FilterLayerState = FilterLayerState { _fallback :: Performer
                                          }
 makeLenses ''FilterLayerState
 
+filterLayerInitialState :: Performer -> FilterLayerState
+filterLayerInitialState fallback = FilterLayerState fallback Map.empty Map.empty
+
 -- | Command sender to do some action
 data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filter
                | Packet Performer MarionetteMsg   -- ^ Packet to send
