@@ -28,6 +28,7 @@ import Brick.Widgets.Edit (editor, Editor, handleEditorEvent, renderEditor, getE
 import Brick.Widgets.Border (border, borderAttr)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Vector as V
+import qualified Data.Map as M
 import qualified Data.Text.Zipper as Z
 import qualified Graphics.Vty as Vty
 import qualified Graphics.Vty.Attributes.Color as Color
@@ -38,16 +39,20 @@ import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
+import VMCMixer.UI.Brick.Widgets.FilterDisplay (renderFilterDisplay, FilterDisplay(FilterDisplay), filterDisplay)
 import VMCMixer.Parser (parsePerformer)
-import VMCMixer.Types (Performer, Marionette, performerPort, performerName)
+import VMCMixer.Types (Performer(Performer), Marionette, performerPort, performerName, MarionetteMsgAddresses(RootTransform))
 
-data Name = InputStreams | NewAddrEditor deriving (Ord, Eq, Show)
+data Name = InputStreams | NewAddrEditor | FiltersDisplay
+          | FilterRootTransform | FilterFallback
+          deriving (Ord, Eq, Show)
 
 data AppState = AppState { _inputStreams :: List Name Performer
                          , _inputStreamSockets :: V.Vector Socket
                          , _newAddrEditor :: Editor String Name
                          , _focus :: FocusRing Name
                          , _uiEventEmitter :: BChan VMCMixerUIEvent
+                         , _filterD :: FilterDisplay Name
                          }
 makeLenses ''AppState
 
@@ -67,7 +72,9 @@ withFocusedBorder renderer isFocused st  = _border $ renderer isFocused st
               else border
 
 ui :: AppState -> [Widget Name]
-ui s = [vBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAddrInfo)    (s^.inputStreams)
+ui s = [vBox [ hBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList renderAddrInfo)    (s^.inputStreams)
+                    , withFocusRing (s^.focus) (withFocusedBorder renderFilterDisplay) (s^.filterD)
+                    ]
              , withFocusRing (s^.focus) (withFocusedBorder $ renderEditor (str . unlines)) (s^.newAddrEditor)]]
 
 eHandler :: AppState -> BrickEvent Name VMCMixerUIEvent -> EventM Name (Next AppState)
@@ -83,6 +90,7 @@ eHandler s (VtyEvent (Vty.EvKey Vty.KBackTab []))     = continue $ s&focus%~focu
 eHandler s (VtyEvent ev) = continue =<< case (focusGetCurrent (s^.focus)) of
                                           (Just InputStreams ) -> handleEventLensed s inputStreams handleListEvent ev
                                           (Just NewAddrEditor) -> handleEditorEvent' ev s
+                                          (Just FiltersDisplay) -> return s -- TODO
                                           Nothing -> return s
 eHandler s _ = continue s
 
@@ -111,4 +119,12 @@ app = App { appDraw = ui
 
 initialState :: BChan VMCMixerUIEvent -> [Performer] -> AppState
 initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList initialInputs) 2)
-               (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor]) evEmitterCh
+               (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor
+                                                                       , FiltersDisplay]) evEmitterCh
+                                         (filterDisplay FiltersDisplay
+                                           [(RootTransform
+                                            , list FilterRootTransform (V.fromList [Performer 12345 $ Just "FooBar"]) 1)
+                                           ]
+                                           (FilterFallback, Performer 0 (Just "This is fall back"))
+                                         -- TODO: it is stub. you should give fallback properly
+                                         )
