@@ -26,6 +26,7 @@ import Sound.OSC.Transport.FD (withTransport, recvMessage)
 import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
 import Pipes
+import Pipes.VMCP.Marionette (recvMarionetteMsgWithUdp)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Marionette, Performer(Performer), performerPort)
 import VMCMixer.Backend.Sender (sendIt')
@@ -75,10 +76,7 @@ sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ 
 awaitPacket :: Performer -> Output SenderCmd -> IO ()
 awaitPacket performer output =
   withTransport (udp_server (performer^.performerPort)) $ \socket -> do
-    let recvMsg so =
-          liftIO (recvMessage so)
-          >>= (return . join . fmap fromOSCMessage)
-          >>= maybe (pure ()) (yield . Packet performer)
-
-    runEffect $ (forever $ recvMsg socket) >-> toOutput output
+    runEffect $ (recvMarionetteMsgWithUdp socket)
+      >-> for cat (yield . Packet performer)
+      >-> toOutput output
     performGC
