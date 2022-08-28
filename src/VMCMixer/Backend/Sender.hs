@@ -30,11 +30,11 @@ import Pipes
 import VMCMixer.Types (Marionette, marionetteAddress, marionettePort) 
 
 -- | Awaits from given 'Input', and send it to given Address.
-sendIt' :: (MonadIO m, MonadFail m, VMCPMessage msg) => Marionette -> OSC.UDP -> Consumer msg m ()
-sendIt' marionette socket = forever $ do
+sendIt' :: (MonadIO m, MonadFail m) => Marionette -> OSC.UDP -> Consumer OSC.Packet m ()
+sendIt' marionette socket = for cat $ \packet -> do
   let host = marionette^.marionetteAddress
       port = marionette^.marionettePort
-  msg <- await
+
   let hints = N.defaultHints {N.addrFamily = N.AF_INET} -- localhost=ipv4
 
   -- I needed to use 'sendTo' instead of 'send' so that it does not requiire to have connection.
@@ -42,4 +42,4 @@ sendIt' marionette socket = forever $ do
   -- Those two lines are borrowed from implementation of 'Sound.OSC.Transport.FD.UDP.udp_socket'
   -- https://hackage.haskell.org/package/hosc-0.19.1/docs/src/Sound.OSC.Transport.FD.UDP.html#udp_socket
   i:_ <- liftIO $ N.getAddrInfo (Just hints) (Just host) (Just (show port))
-  liftIO $ sendTo socket (Packet_Message . toOSCMessage $ msg) (N.addrAddress i)
+  liftIO $ sendTo socket packet (N.addrAddress i)

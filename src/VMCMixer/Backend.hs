@@ -26,7 +26,7 @@ import Sound.OSC.Transport.FD (withTransport, recvMessage)
 import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
 import Pipes
-import Pipes.VMCP.Marionette (recvMarionetteMsgWithUdp)
+import Pipes.VMCP.Marionette (recvMarionetteMsgWithUdp, mkPacket)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Marionette, Performer(Performer), performerPort)
 import VMCMixer.Backend.Sender (sendIt')
@@ -69,7 +69,10 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
 sendIt :: Marionette -> Input SenderCmd -> IO ()
 sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
   flip execStateT (filterLayerInitialState $ Performer 0 Nothing)
-    $ runEffect (fromInput msgIn >-> applyFilter  >-> sendIt' addr socket)
+    $ runEffect (fromInput msgIn
+                 >-> applyFilter
+                 >-> mkPacket
+                 >-> sendIt' addr socket)
   performGC
 
 
