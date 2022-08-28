@@ -19,7 +19,8 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module VMCMixer.UI.Brick.Widgets.FilterDisplay where
-import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt)
+import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable)
+import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget)
 import Brick.Widgets.List (renderList, List)
 import qualified Data.Map as M
@@ -29,11 +30,12 @@ import Lens.Micro.TH (makeLenses)
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
                                      , _containedFilters :: M.Map MarionetteMsgAddresses (List n Performer)
+                                     , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
 
-filterDisplay :: n -> [(MarionetteMsgAddresses, List n Performer)] -> FilterDisplay n
-filterDisplay n fs = FilterDisplay n $ M.fromList fs
+filterDisplay :: n -> [(MarionetteMsgAddresses, List n Performer)] -> (n, Performer) -> FilterDisplay n
+filterDisplay n fs fallback = FilterDisplay n (M.fromList fs) fallback
 
 instance Named (FilterDisplay n) n where
   getName = view displayName
@@ -42,9 +44,14 @@ renderAddrInfo :: (Ord n, Show n) => Bool -> Performer -> Widget n
 renderAddrInfo isFocused performer = hBox [txt . maybe "" id $ view performerName performer
                                           , str $ " (" ++ (show $ view performerPort performer) ++ ")"
                                           ]
+
+renderFallback :: (Ord n, Show n) => FilterDisplay n -> Widget n
+renderFallback fs = let (name, p) = view fallbackFilter fs
+                    in clickable name (renderAddrInfo False p)
  
 renderFilterDisplay :: (Ord n, Show n) => Bool -> FilterDisplay n -> Widget n
-renderFilterDisplay isFocused map = vBox $ renderFilterInfoRow isFocused <$> (M.toList . view containedFilters $ map)
+renderFilterDisplay isFocused map =
+        vBox $ [renderFallback map, hBorder] ++ (renderFilterInfoRow isFocused <$> (M.toList . view containedFilters $ map))
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = vBox [str $ show addr
