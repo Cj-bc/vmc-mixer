@@ -30,7 +30,7 @@ import Pipes.VMCP.Marionette (recvMarionetteMsgWithUdp, mkPacket)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.Types (Marionette, Performer(Performer), performerPort)
 import VMCMixer.Backend.Sender (sendIt')
-import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState))
+import VMCMixer.Backend.Filter (SenderCmd(..), applyFilter, FilterLayerState(FilterLayerState), filterLayerInitialState)
 import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 import qualified Network.Socket as N
