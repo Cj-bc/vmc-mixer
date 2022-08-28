@@ -39,10 +39,9 @@ import Data.UnityEditor (HumanBodyBones)
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro ((%~), (.~))
 import Lens.Micro.Extras (view)
-import Pipes (Pipe, await, yield)
+import Pipes (Pipe, await, yield, cat, for)
 import VMCMixer.Types
 
-  
 
 -- | State
 data FilterLayerState = FilterLayerState { _messageFilter :: Filter
@@ -63,23 +62,18 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- + Where the packet is came from
 -- + Wheather higher-prioritized packet isn't ongoing
 applyFilter :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-applyFilter = do
-  forever go
-  where
-    go :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-    go = do
-      cmd <- await
-      case cmd of
-        UpdateFilter f ->
-          modify $ messageFilter.~f
-        Packet p msg -> do
-          let msgAddr = extractAddress msg
-          shouldYield <- applyFilter' p msgAddr
-          if shouldYield
-            then yield msg
-            else pure ()
+applyFilter = for cat $ \cmd ->
+  case cmd of
+    UpdateFilter f ->
+      modify $ messageFilter.~f
+    Packet p msg -> do
+      let msgAddr = extractAddress msg
+      shouldYield <- applyFilter' p msgAddr
+      if shouldYield
+        then yield msg
+        else pure ()
 
-          updatePrev p msgAddr
+      updatePrev p msgAddr
 
 -- | Apply filter
 applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
