@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE TemplateHaskell #-}
 module VMCMixer.Types where
 import Data.Text (Text)
+import Data.Hashable (Hashable(hashWithSalt), hash)
 import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 import qualified Data.VMCP.Marionette as Marionette
@@ -77,3 +78,14 @@ data Filter = Filter { _fallback :: Performer
                      , _filters :: HMap.HashMap MarionetteMsgAddresses [Performer] -- ^ Use those 
                      }
 makeLenses ''Filter
+
+instance Hashable MarionetteMsgAddresses where
+  hashWithSalt i f = hash (i+pt)
+    where
+      pt = case f of
+             Available               -> 0
+             Time                    -> 1
+             RootTransform           -> 2
+             BoneTransform           -> 3
+             VRMBlendShapeProxyValue -> 4
+             VRMBlendShapeProxyApply -> 5
