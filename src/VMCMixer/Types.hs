@@ -16,9 +16,11 @@ vmc-mixer is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 You should have received a copy of the GNU General Public License along with vmc-mixer. If not, see <https://www.gnu.org/licenses/>.
 -}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
 module VMCMixer.Types where
 import Data.Text (Text)
-import Data.Hashable (Hashable(hashWithSalt), hash)
+import Data.Hashable (Hashable)
+import GHC.Generics (Generic)
 import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 import qualified Data.VMCP.Marionette as Marionette
@@ -55,8 +57,9 @@ data MarionetteMsgAddresses =
   | VRMBlendShapeProxyValue -- BlendShapeExpression
   -- | 一連の内容が送信された後送信される
   | VRMBlendShapeProxyApply
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
+instance Hashable MarionetteMsgAddresses
 
 -- | Extract 'MarionetteMsgAddresses' from 'MarionetteMsg'
 extractAddress :: Marionette.MarionetteMsg -> MarionetteMsgAddresses
@@ -79,13 +82,3 @@ data Filter = Filter { _fallback :: Performer
                      }
 makeLenses ''Filter
 
-instance Hashable MarionetteMsgAddresses where
-  hashWithSalt i f = hash (i+pt)
-    where
-      pt = case f of
-             Available               -> 0
-             Time                    -> 1
-             RootTransform           -> 2
-             BoneTransform           -> 3
-             VRMBlendShapeProxyValue -> 4
-             VRMBlendShapeProxyApply -> 5
