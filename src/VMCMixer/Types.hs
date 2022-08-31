@@ -22,6 +22,7 @@ import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
 import qualified Data.VMCP.Marionette as Marionette
 import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as HMap
 
 data Performer = Performer { _performerPort :: Int
                            , _performerName :: Maybe Text
@@ -53,7 +54,7 @@ data MarionetteMsgAddresses =
   | VRMBlendShapeProxyValue -- BlendShapeExpression
   -- | 一連の内容が送信された後送信される
   | VRMBlendShapeProxyApply
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq)
 
 
 -- | Extract 'MarionetteMsgAddresses' from 'MarionetteMsg'
@@ -73,6 +74,6 @@ extractAddress msg = case msg of
 
 -- | Represents one filter
 data Filter = Filter { _fallback :: Performer
-                     , _filters :: Map.Map MarionetteMsgAddresses [Performer] -- ^ Use those 
+                     , _filters :: HMap.HashMap MarionetteMsgAddresses [Performer] -- ^ Use those 
                      }
 makeLenses ''Filter

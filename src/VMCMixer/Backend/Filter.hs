@@ -30,7 +30,7 @@ import Control.Monad (liftM2, forever)
 import Control.Monad.State.Class
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.State.Strict (StateT)
-import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as HMap
 import qualified Data.List as List
 import Data.Maybe (maybe)
 import Data.VMCP.Marionette (MarionetteMsg)
@@ -45,12 +45,12 @@ import VMCMixer.Types
 
 -- | State
 data FilterLayerState = FilterLayerState { _messageFilter :: Filter
-                                         , _previousPerformer :: Map.Map MarionetteMsgAddresses Performer
+                                         , _previousPerformer :: HMap.HashMap MarionetteMsgAddresses Performer
                                          }
 makeLenses ''FilterLayerState
 
 filterLayerInitialState :: Performer -> FilterLayerState
-filterLayerInitialState fallback = FilterLayerState (Filter fallback Map.empty) Map.empty
+filterLayerInitialState fallback = FilterLayerState (Filter fallback HMap.empty) HMap.empty
 
 -- | Command sender to do some action
 data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filter
@@ -78,8 +78,8 @@ applyFilter = for cat $ \cmd ->
 -- | Apply filter
 applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
 applyFilter' p msgAddr = do
-  fil <- gets (Map.lookup msgAddr .view (messageFilter.filters))
-  prev <- gets (Map.lookup msgAddr . view previousPerformer)
+  fil <- gets (HMap.lookup msgAddr .view (messageFilter.filters))
+  prev <- gets (HMap.lookup msgAddr . view previousPerformer)
   case (fil, prev) of
     -- If filter isn't set, that message should be passed
     (Nothing, _) -> return True
@@ -94,4 +94,4 @@ applyFilter' p msgAddr = do
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
 updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-updatePrev p msgAddr = modify $ previousPerformer%~(Map.update (const $ Just p) msgAddr)
+updatePrev p msgAddr = modify $ previousPerformer%~(HMap.update (const $ Just p) msgAddr)

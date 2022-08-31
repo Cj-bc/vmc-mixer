@@ -23,19 +23,19 @@ import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable)
 import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget)
 import Brick.Widgets.List (renderList, List)
-import qualified Data.Map as M
+import qualified Data.HashMap.Strict as HMap
 import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort)
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
-                                     , _containedFilters :: M.Map MarionetteMsgAddresses (List n Performer)
+                                     , _containedFilters :: Hmap.HashMap MarionetteMsgAddresses (List n Performer)
                                      , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
 
 filterDisplay :: n -> [(MarionetteMsgAddresses, List n Performer)] -> (n, Performer) -> FilterDisplay n
-filterDisplay n fs fallback = FilterDisplay n (M.fromList fs) fallback
+filterDisplay n fs fallback = FilterDisplay n (HMap.fromList fs) fallback
 
 instance Named (FilterDisplay n) n where
   getName = view displayName
@@ -51,7 +51,7 @@ renderFallback fs = let (name, p) = view fallbackFilter fs
  
 renderFilterDisplay :: (Ord n, Show n) => Bool -> FilterDisplay n -> Widget n
 renderFilterDisplay isFocused map =
-        vBox $ [renderFallback map, hBorder] ++ (renderFilterInfoRow isFocused <$> (M.toList . view containedFilters $ map))
+        vBox $ [renderFallback map, hBorder] ++ (renderFilterInfoRow isFocused <$> (HMap.toList . view containedFilters $ map))
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = vBox [str $ show addr

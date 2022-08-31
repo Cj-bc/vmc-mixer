@@ -21,7 +21,6 @@ import Control.Concurrent.Async (async, link, Async, cancel)
 import Control.Monad (forever, forM_, join)
 import Control.Monad.State.Strict (execStateT, StateT(..), modify', get)
 import Data.List (find)
-import qualified Data.Map.Strict as Map
 import Sound.OSC.Transport.FD (withTransport, recvMessage)
 import Sound.OSC.Transport.FD.UDP (udp_server)
 import Pipes.Concurrent
