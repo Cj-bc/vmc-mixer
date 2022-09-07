@@ -29,7 +29,7 @@ import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
-                                     , _containedFilters :: Hmap.HashMap MarionetteMsgAddresses (List n Performer)
+                                     , _containedFilters :: HMap.HashMap MarionetteMsgAddresses (List n Performer)
                                      , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
