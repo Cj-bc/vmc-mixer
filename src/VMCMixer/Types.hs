@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with vmc
 module VMCMixer.Types where
 import Data.Text (Text)
 import Data.Hashable (Hashable)
+import Data.VRM (BlendShapeExpression)
+import Data.UnityEditor (HumanBodyBones)
 import GHC.Generics (Generic)
 import Network.Socket (PortNumber)
 import Lens.Micro.TH (makeLenses)
@@ -52,9 +54,9 @@ data MarionetteMsgAddresses =
   -- | モデルのrootとなるオブジェクトの絶対姿勢
   | RootTransform
   -- | モデルのrootとなるオブジェクトのLocal姿勢
-  | BoneTransform -- HumanBodyBones
+  | BoneTransform HumanBodyBones
   -- | BlendShapeProxyの値。
-  | VRMBlendShapeProxyValue -- BlendShapeExpression
+  | VRMBlendShapeProxyValue BlendShapeExpression
   -- | 一連の内容が送信された後送信される
   | VRMBlendShapeProxyApply
   deriving (Show, Eq, Generic)
@@ -67,8 +69,8 @@ extractAddress msg = case msg of
   Marionette.Available _                 -> Available
   Marionette.Time _                      -> Time
   Marionette.RootTransform _ _           -> RootTransform
-  Marionette.BoneTransform _ _ _         -> BoneTransform -- HumanBodyBones
-  Marionette.VRMBlendShapeProxyValue _ _ -> VRMBlendShapeProxyValue -- BlendShapeExpression
+  Marionette.BoneTransform b _ _         -> BoneTransform b
+  Marionette.VRMBlendShapeProxyValue e _ -> VRMBlendShapeProxyValue e
   Marionette.VRMBlendShapeProxyApply     -> VRMBlendShapeProxyApply
   unknown                     -> error $ mconcat ["Unknown MarionetteMsg: "
                                                  , show unknown
