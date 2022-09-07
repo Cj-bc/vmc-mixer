@@ -19,9 +19,9 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module VMCMixer.UI.Brick.Widgets.FilterDisplay where
-import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable)
+import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft)
 import Brick.Widgets.Border (hBorder)
-import Brick.Types (Widget)
+import Brick.Types (Widget, Padding(Pad))
 import Brick.Widgets.List (renderList, List)
 import qualified Data.HashMap.Strict as HMap
 import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort)
@@ -55,5 +55,5 @@ renderFilterDisplay isFocused map =
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = vBox [str $ show addr
-                                                , renderList renderAddrInfo isFocused ls
+                                                , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
                                                 ]
