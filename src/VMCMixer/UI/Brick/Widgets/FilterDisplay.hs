@@ -32,32 +32,8 @@ import qualified Graphics.Vty as Vty
 import Brick (AttrName)
 import Data.Maybe (fromMaybe)
 import qualified Data.Vector as V
+import Data.Zipper
 
--- {{{ Zipper implementation
-import Lens.Micro (to, SimpleGetter)
-
--- | Simple zipper
-data Zipper a = Zipper { _peeked :: a
-                       , _before :: [a]
-                       , _after  :: [a]
-                       }
-makeLenses  ''Zipper
-
-next :: SimpleGetter (Zipper a) (Maybe (Zipper a))
-next = let getter (Zipper c bs []) = Nothing
-           getter (Zipper c bs (a:as)) = Just $ Zipper a (c:bs) as
-  in to getter
-
--- | Return Zipper that peeks previous value
---
---  view (next . previous) == id
---  view (previous . next) == id
-previous :: SimpleGetter (Zipper a) (Maybe (Zipper a))
-previous = let getter (Zipper c [] as)     = Nothing
-               getter (Zipper c (b:bs) as) = Just $ Zipper b bs (c:as)
-  in to getter
-
--- }}}
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
                                      , _containedFilters :: Zipper (MarionetteMsgAddresses, V.Vector Performer)

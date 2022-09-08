@@ -27,6 +27,7 @@ library
         VMCMixer.UI.Brick.Event
         VMCMixer.UI.Brick
         VMCMixer.UI.Brick.Widgets.FilterDisplay
+        Data.Zipper
   exposed-modules:
       VMCMixer.Parser
       VMCMixer.Backend
