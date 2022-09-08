@@ -71,6 +71,18 @@ toFilter d = Filter (d^.fallbackFilter._2)
              . over (each._2) V.toList
              $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
 
+-- | Add new filter spec to peeked address
+filterAdd :: Performer -> FilterDisplay n -> FilterDisplay n
+filterAdd p display = display&containedFilters.peeked._2%~(`V.snoc` p)
+
+-- | Remove specified filter spec from peeked address
+filterRemove :: Performer -> FilterDisplay n -> FilterDisplay n
+filterRemove p display = display&containedFilters.peeked._2%~V.filter (/= p)
+
+-- | Set new fallback 'Performer'
+filterSetFallback :: Performer -> FilterDisplay n -> FilterDisplay n
+filterSetFallback p display = display&fallbackFilter._2.~p
+
 filterDisplay :: n -> [(MarionetteMsgAddresses, V.Vector Performer)] -> (n, Performer) -> FilterDisplay n
 filterDisplay n (peeked':rest) fallback = FilterDisplay n (Zipper peeked' [] rest) fallback
 
