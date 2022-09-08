@@ -17,11 +17,14 @@ import Brick.Widgets.List (listSelectedAttr)
 import Brick.Widgets.Border (borderAttr)
 import qualified Graphics.Vty as Vty
 import qualified Graphics.Vty.Attributes.Color as Color
+import VMCMixer.UI.Brick.Widgets.FilterDisplay (filterDisplayPeekedAttr, filterDisplayAttr)
 
 vmcmAttrmap :: AttrMap
 vmcmAttrmap = attrMap Vty.defAttr
   [(listSelectedAttr, Vty.withBackColor Vty.defAttr Color.black)
   ,(borderFocusedAttr, Vty.withForeColor Vty.defAttr Color.blue)
+  ,(filterDisplayAttr, Vty.withBackColor  Vty.defAttr Color.red)
+  ,(filterDisplayPeekedAttr, Vty.withBackColor Vty.defAttr Color.brightBlue)
   ]
 borderFocusedAttr :: AttrName
 borderFocusedAttr = borderAttr<>"focused"
