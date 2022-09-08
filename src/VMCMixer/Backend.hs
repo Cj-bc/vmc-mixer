@@ -65,9 +65,9 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
 
 -- | Run 'sendIt'' with UDP socket bracket.
 -- TODO: @Performer 0 Nothing@ is temporary written here, it should be given by user at runtime.
-sendIt :: Marionette -> Input SenderCmd -> IO ()
-sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
-  flip execStateT (filterLayerInitialState $ Performer 0 Nothing)
+sendIt :: Performer -> Marionette -> Input SenderCmd -> IO ()
+sendIt _fallback addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
+  flip execStateT (filterLayerInitialState _fallback)
     $ runEffect (fromInput msgIn
                  >-> applyFilter
                  >-> mkPacket

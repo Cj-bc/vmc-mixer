@@ -44,6 +44,7 @@ import Control.Monad (void)
 import Data.VMCP.Marionette (MarionetteMsg)
 import VMCMixer.UI.Brick.Event
 import VMCMixer.UI.Brick (app, initialState)
+import VMCMixer.Types (MarionetteMsgAddresses(RootTransform), Performer(Performer), Filter(Filter))
 import VMCMixer.Backend (mainLoop, sendIt)
 import VMCMixer.Backend.Filter (SenderCmd)
 import VMCMixer.Options (getOption)
@@ -64,6 +65,7 @@ main = do
   opts <- getOption
   let performerAddrs  = opts^.Opt.performers
       marionetteAddr = opts^.Opt.marionette
+      _fallback = Performer 39541 (Just "waidayo") -- TODO: Read fallback from command option
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.
@@ -72,7 +74,7 @@ main = do
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
   -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
-  output <- async $ sendIt marionetteAddr msgIn
+  output <- async $ sendIt _fallback marionetteAddr msgIn
 
   brickCh <- newBChan 1
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs

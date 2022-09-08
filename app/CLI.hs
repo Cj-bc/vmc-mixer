@@ -23,6 +23,7 @@ at launching.
 -}
 
 module Main where
+import VMCMixer.Types (Performer(Performer))
 import VMCMixer.Backend (sendIt, awaitPacket)
 import VMCMixer.Backend.Filter (SenderCmd)
 import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_)
@@ -38,8 +39,9 @@ main = do
   (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox SenderCmd)
 
   print $ "Input from: " ++ (show $ opt^.Opt.performers)
+  let _fallback = Performer 39541 (Just "waidayo") -- TODO: Read fallback from command option
 
-  output <- async $ sendIt (opt^.Opt.marionette) msgIn
+  output <- async $ sendIt _fallback (opt^.Opt.marionette) msgIn
   as <- forM (opt^.Opt.performers) $ \p -> do
     a <- async $ awaitPacket p msgOut
     link a
