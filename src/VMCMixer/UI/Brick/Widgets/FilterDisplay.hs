@@ -25,7 +25,7 @@ import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget, Padding(Pad), EventM)
 import Brick.Widgets.List (renderList, List)
 import qualified Data.HashMap.Strict as HMap
-import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort)
+import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort, Filter(Filter))
 import Lens.Micro ((^.), (%~), (&))
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
@@ -64,6 +64,9 @@ data FilterDisplay n = FilterDisplay { _displayName :: n
                                      , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
+
+toFilter :: FilterDisplay n -> Filter
+toFilter d = Filter (d^.fallbackFilter._2) . HMap.fromList . fmap (\(addr, l) -> (addr, V.toList $ listElements l)) $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
 
 filterDisplay :: n -> [(MarionetteMsgAddresses, List n Performer)] -> (n, Performer) -> FilterDisplay n
 filterDisplay n (peeked':rest) fallback = FilterDisplay n (Zipper peeked' [] rest) fallback
