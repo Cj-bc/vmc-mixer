@@ -42,6 +42,7 @@ import VMCMixer.UI.Brick.Event
 import VMCMixer.UI.Brick.Widgets.FilterDisplay (renderFilterDisplay, FilterDisplay(FilterDisplay), filterDisplay, handleFilterDisplayEvent)
 import VMCMixer.Parser (parsePerformer)
 import VMCMixer.Types (Performer(Performer), Marionette, performerPort, performerName, MarionetteMsgAddresses(RootTransform))
+import Data.Maybe (fromMaybe)
 
 data Name = InputStreams | NewAddrEditor | FiltersDisplay
           | FilterRootTransform | FilterFallback
@@ -57,8 +58,8 @@ data AppState = AppState { _inputStreams :: List Name Performer
 makeLenses ''AppState
 
 renderAddrInfo :: Bool -> Performer -> Widget Name
-renderAddrInfo isFocused performer = hBox [txt . maybe "" id $ view performerName performer
-                                          , str $ " (" ++ (show $ view performerPort performer) ++ ")"
+renderAddrInfo isFocused performer = hBox [txt . fromMaybe "" $ view performerName performer
+                                          , str $ " (" ++ show (view performerPort performer) ++ ")"
                                           ]
 
 -- | Draw 'Widget' in border, but with focus-aware attribute
