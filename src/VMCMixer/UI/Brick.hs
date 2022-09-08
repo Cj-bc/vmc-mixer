@@ -92,6 +92,7 @@ eHandler s (VtyEvent ev) = continue =<< case focusGetCurrent (s^.focus) of
                                           (Just InputStreams ) -> handleEventLensed s inputStreams handleListEvent ev
                                           (Just NewAddrEditor) -> handleEditorEvent' ev s
                                           (Just FiltersDisplay) -> handleEventLensed s filterD handleFilterDisplayEvent ev
+                                          Just _ -> return s
                                           Nothing -> return s
 eHandler s _ = continue s
 
