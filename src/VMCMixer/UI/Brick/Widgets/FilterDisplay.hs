@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections #-}
 module VMCMixer.UI.Brick.Widgets.FilterDisplay where
-import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft)
+import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft, withAttr)
 import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget, Padding(Pad))
 import Brick.Widgets.List (renderList, List)
@@ -29,6 +29,7 @@ import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, perform
 import Lens.Micro ((^.))
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
+import Brick (AttrName)
 
 -- {{{ Zipper implementation
 import Lens.Micro (to, SimpleGetter)
@@ -86,6 +87,16 @@ renderFilterDisplay isFocused map =
   in vBox $ [renderFallback map, hBorder] ++ (uncurry renderFilterInfoRow <$> filters)
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
-renderFilterInfoRow isFocused (addr, ls) = vBox [str $ show addr
-                                                , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
-                                                ]
+renderFilterInfoRow isFocused (addr, ls) = withAttr atr $ vBox [str $ show addr
+                                                              , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
+                                                              ]
+  where
+    atr = if isFocused then filterDisplayPeekedAttr else filterDisplayAttr
+
+-- | The top-level attribute used for entire filterDisplay widget
+filterDisplayAttr :: AttrName
+filterDisplayAttr = "filterDisplay"
+
+-- | The attribute used for 'Filter' that is currently peeked
+filterDisplayPeekedAttr :: AttrName
+filterDisplayPeekedAttr = filterDisplayAttr <> "Peeked"
