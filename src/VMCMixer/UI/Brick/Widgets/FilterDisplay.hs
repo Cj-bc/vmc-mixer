@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TupleSections #-}
 module VMCMixer.UI.Brick.Widgets.FilterDisplay where
 import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft)
 import Brick.Widgets.Border (hBorder)
@@ -76,7 +77,11 @@ renderFallback fs = let (name, p) = view fallbackFilter fs
  
 renderFilterDisplay :: (Ord n, Show n) => Bool -> FilterDisplay n -> Widget n
 renderFilterDisplay isFocused map =
-        vBox $ [renderFallback map, hBorder] ++ (renderFilterInfoRow isFocused <$> mconcat [map^.containedFilters.before, [map^.containedFilters.peeked], map^.containedFilters.after])
+  let filters = mconcat [(False,) <$> map^.containedFilters.before
+                        , [(True, map^.containedFilters.peeked)]
+                        , (False,) <$> map^.containedFilters.after
+                        ]
+  in vBox $ [renderFallback map, hBorder] ++ (uncurry renderFilterInfoRow <$> filters)
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = vBox [str $ show addr
