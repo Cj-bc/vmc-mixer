@@ -40,16 +40,18 @@ data Zipper a = Zipper { _peeked :: a
                        }
 makeLenses  ''Zipper
 
-next :: SimpleGetter (Zipper a) (Zipper a)
-next = let getter (Zipper c bs (a:as)) = Zipper a (c:bs) as
+next :: SimpleGetter (Zipper a) (Maybe (Zipper a))
+next = let getter (Zipper c bs []) = Nothing
+           getter (Zipper c bs (a:as)) = Just $ Zipper a (c:bs) as
   in to getter
 
 -- | Return Zipper that peeks previous value
 --
 --  view (next . previous) == id
 --  view (previous . next) == id
-previous :: SimpleGetter (Zipper a) (Zipper a)
-previous = let getter (Zipper c (b:bs) as) = Zipper b bs (c:as)
+previous :: SimpleGetter (Zipper a) (Maybe (Zipper a))
+previous = let getter (Zipper c [] as)     = Nothing
+               getter (Zipper c (b:bs) as) = Just $ Zipper b bs (c:as)
   in to getter
 
 -- }}}
