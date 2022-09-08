@@ -33,7 +33,7 @@ import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.State.Strict (StateT)
 import qualified Data.HashMap.Strict as HMap
 import qualified Data.List as List
-import Data.Maybe (maybe)
+import Data.Maybe (maybe, fromMaybe)
 import Data.VMCP.Marionette (MarionetteMsg)
 import Data.VRM (BlendShapeExpression)
 import Data.UnityEditor (HumanBodyBones)
@@ -86,12 +86,12 @@ applyFilter' p msgAddr = do
     (Just ps, Nothing) -> return True
     (Just ps, Just prev') ->
       -- Lower number has higher priority
-      let prevPerformerPriority    = maybe 10000 id $ List.findIndex (== prev') ps
-          currentPerformerPriority = maybe 10000 id $ List.findIndex (== p) ps
+      let prevPerformerPriority    = fromMaybe 10000 $ List.elemIndex prev' ps
+          currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
       in return $ prevPerformerPriority > currentPerformerPriority
 
 -- | Update
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
 updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-updatePrev p msgAddr = modify $ previousPerformer%~(HMap.update (const $ Just p) msgAddr)
+updatePrev p msgAddr = modify $ previousPerformer%~HMap.update (const $ Just p) msgAddr

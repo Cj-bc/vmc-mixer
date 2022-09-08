@@ -79,15 +79,15 @@ ui s = [vBox [ hBox [ withFocusRing (s^.focus) (withFocusedBorder $ renderList r
 
 eHandler :: AppState -> BrickEvent Name VMCMixerUIEvent -> EventM Name (Next AppState)
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '-') [])) =
-  case (listSelectedElement $ s^.inputStreams) of
+  case listSelectedElement $ s^.inputStreams of
     Nothing -> continue s
     Just (idx, port) -> do
       liftIO $ writeBChan (s^.uiEventEmitter) (RemoveAddr port)
-      continue $ s&inputStreams%~(\l -> maybe l (\idx -> listRemove idx l) (listSelected l))
+      continue $ s&inputStreams%~(\l -> maybe l (`listRemove` l) (listSelected l))
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar 'q') [])) = halt s
 eHandler s (VtyEvent (Vty.EvKey (Vty.KChar '\t') []))  = continue $ s&focus%~focusNext
 eHandler s (VtyEvent (Vty.EvKey Vty.KBackTab []))     = continue $ s&focus%~focusPrev
-eHandler s (VtyEvent ev) = continue =<< case (focusGetCurrent (s^.focus)) of
+eHandler s (VtyEvent ev) = continue =<< case focusGetCurrent (s^.focus) of
                                           (Just InputStreams ) -> handleEventLensed s inputStreams handleListEvent ev
                                           (Just NewAddrEditor) -> handleEditorEvent' ev s
                                           (Just FiltersDisplay) -> handleEventLensed s filterD handleFilterDisplayEvent ev
@@ -100,7 +100,7 @@ handleEditorEvent' (Vty.EvKey Vty.KEnter []) s =
   let ed = s^.newAddrEditor
       l  = s^.inputStreams
       ed' = applyEdit Z.clearZipper ed
-  in case (parsePerformer . head $ getEditContents ed) of
+  in case parsePerformer . head $ getEditContents ed of
        (Left err) -> return s -- TODO: Display error message on UI.
        (Right marionette) -> do
          let l' = listInsert 0 marionette l
@@ -119,7 +119,7 @@ app = App { appDraw = ui
 
 initialState :: BChan VMCMixerUIEvent -> [Performer] -> AppState
 initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList initialInputs) 2)
-               (V.empty) (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor
+               V.empty (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor
                                                                        , FiltersDisplay]) evEmitterCh
                                          (filterDisplay FiltersDisplay
                                            [(RootTransform
