@@ -39,7 +39,7 @@ import Network.Socket (Socket)
 
 import VMCMixer.UI.Brick.Attr
 import VMCMixer.UI.Brick.Event
-import VMCMixer.UI.Brick.Widgets.FilterDisplay (renderFilterDisplay, FilterDisplay(FilterDisplay), filterDisplay)
+import VMCMixer.UI.Brick.Widgets.FilterDisplay (renderFilterDisplay, FilterDisplay(FilterDisplay), filterDisplay, handleFilterDisplayEvent)
 import VMCMixer.Parser (parsePerformer)
 import VMCMixer.Types (Performer(Performer), Marionette, performerPort, performerName, MarionetteMsgAddresses(RootTransform))
 
@@ -90,7 +90,7 @@ eHandler s (VtyEvent (Vty.EvKey Vty.KBackTab []))     = continue $ s&focus%~focu
 eHandler s (VtyEvent ev) = continue =<< case (focusGetCurrent (s^.focus)) of
                                           (Just InputStreams ) -> handleEventLensed s inputStreams handleListEvent ev
                                           (Just NewAddrEditor) -> handleEditorEvent' ev s
-                                          (Just FiltersDisplay) -> return s -- TODO
+                                          (Just FiltersDisplay) -> handleEventLensed s filterD handleFilterDisplayEvent ev
                                           Nothing -> return s
 eHandler s _ = continue s
 
