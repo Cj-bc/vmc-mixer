@@ -22,14 +22,16 @@ You should have received a copy of the GNU General Public License along with vmc
 module VMCMixer.UI.Brick.Widgets.FilterDisplay where
 import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft, withAttr)
 import Brick.Widgets.Border (hBorder)
-import Brick.Types (Widget, Padding(Pad))
+import Brick.Types (Widget, Padding(Pad), EventM)
 import Brick.Widgets.List (renderList, List)
 import qualified Data.HashMap.Strict as HMap
 import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort)
-import Lens.Micro ((^.))
+import Lens.Micro ((^.), (%~), (&))
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
+import qualified Graphics.Vty as Vty
 import Brick (AttrName)
+import Data.Maybe (fromMaybe)
 
 -- {{{ Zipper implementation
 import Lens.Micro (to, SimpleGetter)
@@ -100,3 +102,9 @@ filterDisplayAttr = "filterDisplay"
 -- | The attribute used for 'Filter' that is currently peeked
 filterDisplayPeekedAttr :: AttrName
 filterDisplayPeekedAttr = filterDisplayAttr <> "Peeked"
+
+
+handleFilterDisplayEvent :: Vty.Event -> FilterDisplay n -> EventM n (FilterDisplay n)
+handleFilterDisplayEvent (Vty.EvKey (Vty.KChar 'j') []) d = return $ d&containedFilters%~(\d -> fromMaybe d $ view next d)
+handleFilterDisplayEvent (Vty.EvKey (Vty.KChar 'k') []) d = return $ d&containedFilters%~(\d -> fromMaybe d $ view previous d)
+handleFilterDisplayEvent _ d = return d
