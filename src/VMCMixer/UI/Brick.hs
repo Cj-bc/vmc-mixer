@@ -125,7 +125,7 @@ initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList
                                                                        , FiltersDisplay]) evEmitterCh
                                          (filterDisplay FiltersDisplay
                                            [(RootTransform
-                                            , list FilterRootTransform (V.fromList [Performer 12345 $ Just "FooBar"]) 1)
+                                            , V.fromList [Performer 39542 $ Just "FooBar"])
                                            ]
                                            (FilterFallback, Performer 0 (Just "This is fall back"))
                                          -- TODO: it is stub. you should give fallback properly

@@ -23,15 +23,15 @@ module VMCMixer.UI.Brick.Widgets.FilterDisplay where
 import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft, withAttr)
 import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget, Padding(Pad), EventM)
-import Brick.Widgets.List (renderList, List)
 import qualified Data.HashMap.Strict as HMap
 import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort, Filter(Filter))
-import Lens.Micro ((^.), (%~), (&))
+import Lens.Micro ((^.), (%~), (&), _2, (.~), over, each)
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)
 import qualified Graphics.Vty as Vty
 import Brick (AttrName)
 import Data.Maybe (fromMaybe)
+import qualified Data.Vector as V
 
 -- {{{ Zipper implementation
 import Lens.Micro (to, SimpleGetter)
@@ -60,15 +60,18 @@ previous = let getter (Zipper c [] as)     = Nothing
 -- }}}
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
-                                     , _containedFilters :: Zipper (MarionetteMsgAddresses, List n Performer)
+                                     , _containedFilters :: Zipper (MarionetteMsgAddresses, V.Vector Performer)
                                      , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
 
 toFilter :: FilterDisplay n -> Filter
-toFilter d = Filter (d^.fallbackFilter._2) . HMap.fromList . fmap (\(addr, l) -> (addr, V.toList $ listElements l)) $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
+toFilter d = Filter (d^.fallbackFilter._2)
+             . HMap.fromList
+             . over (each._2) V.toList
+             $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
 
-filterDisplay :: n -> [(MarionetteMsgAddresses, List n Performer)] -> (n, Performer) -> FilterDisplay n
+filterDisplay :: n -> [(MarionetteMsgAddresses, V.Vector Performer)] -> (n, Performer) -> FilterDisplay n
 filterDisplay n (peeked':rest) fallback = FilterDisplay n (Zipper peeked' [] rest) fallback
 
 instance Named (FilterDisplay n) n where
@@ -91,9 +94,9 @@ renderFilterDisplay isFocused map =
                         ]
   in vBox $ [renderFallback map, hBorder] ++ (uncurry renderFilterInfoRow <$> filters)
 
-renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, List n Performer) -> Widget n
+renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, V.Vector Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = withAttr atr $ vBox [str $ show addr
-                                                              , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
+                                                              -- , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
                                                               ]
   where
     atr = if isFocused then filterDisplayPeekedAttr else filterDisplayAttr
