@@ -89,14 +89,14 @@ filterDisplay n (peeked':rest) fallback = FilterDisplay n (Zipper peeked' [] res
 instance Named (FilterDisplay n) n where
   getName = view displayName
 
-renderAddrInfo :: (Ord n, Show n) => Bool -> Performer -> Widget n
-renderAddrInfo isFocused performer = hBox [txt . maybe "" id $ view performerName performer
-                                          , str $ " (" ++ (show $ view performerPort performer) ++ ")"
-                                          ]
+renderAddrInfo :: (Ord n, Show n) => Performer -> Widget n
+renderAddrInfo performer = hBox [txt . maybe "" id $ view performerName performer
+                                , str $ " (" ++ (show $ view performerPort performer) ++ ")"
+                                ]
 
 renderFallback :: (Ord n, Show n) => FilterDisplay n -> Widget n
 renderFallback fs = let (name, p) = view fallbackFilter fs
-                    in clickable name (renderAddrInfo False p)
+                    in clickable name (renderAddrInfo p)
  
 renderFilterDisplay :: (Ord n, Show n) => Bool -> FilterDisplay n -> Widget n
 renderFilterDisplay isFocused map =
@@ -108,8 +108,8 @@ renderFilterDisplay isFocused map =
 
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, V.Vector Performer) -> Widget n
 renderFilterInfoRow isFocused (addr, ls) = withAttr atr $ vBox [str $ show addr
-                                                              -- , padLeft (Pad 2) $ renderList renderAddrInfo isFocused ls
-                                                              ]
+                                                               , padLeft (Pad 2) . vBox . V.toList $ renderAddrInfo <$> ls
+                                                               ]
   where
     atr = if isFocused then filterDisplayPeekedAttr else filterDisplayAttr
 
