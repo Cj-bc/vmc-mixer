@@ -19,6 +19,7 @@ import qualified Graphics.Vty as Vty
 import qualified Graphics.Vty.Attributes.Color as Color
 import VMCMixer.UI.Brick.Widgets.FilterDisplay (filterDisplayPeekedAttr, filterDisplayAttr)
 
+-- | Default 'AttrMap' for vmc-mixer application.
 vmcmAttrmap :: AttrMap
 vmcmAttrmap = attrMap Vty.defAttr
   [(listSelectedAttr, Vty.withBackColor Vty.defAttr Color.black)
@@ -26,5 +27,7 @@ vmcmAttrmap = attrMap Vty.defAttr
   ,(filterDisplayAttr, Vty.withBackColor  Vty.defAttr Color.red)
   ,(filterDisplayPeekedAttr, Vty.withBackColor Vty.defAttr Color.brightBlue)
   ]
+
+-- | Used for borders of Widget that is currently focused on.
 borderFocusedAttr :: AttrName
 borderFocusedAttr = borderAttr<>"focused"
