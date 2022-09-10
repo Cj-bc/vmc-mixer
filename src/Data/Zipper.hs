@@ -36,7 +36,7 @@ import Lens.Micro.TH (makeLenses)
 data Zipper a = Zipper { _peeked :: a
                        , _before :: [a]
                        , _after  :: [a]
-                       }
+                       } deriving (Eq)
 makeLenses  ''Zipper
 
 -- | Return 'Zipper' that peeks next value.
