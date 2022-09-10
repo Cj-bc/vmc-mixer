@@ -114,4 +114,10 @@ test-suite vmc-mixer-test
     , hspec
     , text
     , attoparsec
+    , microlens
+    , QuickCheck
+    , quickcheck-instances
+    , vector
+    , unordered-containers
+    , hVMCP
   default-language: Haskell2010
