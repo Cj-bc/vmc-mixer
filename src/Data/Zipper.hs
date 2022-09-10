@@ -31,6 +31,7 @@ module Data.Zipper (
 
 import Lens.Micro (to, SimpleGetter)
 import Lens.Micro.TH (makeLenses)
+import Test.QuickCheck (Arbitrary(arbitrary))
 
 -- | Simple zipper
 data Zipper a = Zipper { _peeked :: a
@@ -38,6 +39,9 @@ data Zipper a = Zipper { _peeked :: a
                        , _after  :: [a]
                        } deriving (Eq)
 makeLenses  ''Zipper
+
+instance Arbitrary a => Arbitrary (Zipper a) where
+  arbitrary = Zipper <$> arbitrary <*> arbitrary <*> arbitrary
 
 -- | Return 'Zipper' that peeks next value.
 --
