@@ -37,7 +37,7 @@ You should have received a copy of the GNU General Public License along with vmc
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
 module VMCMixer.Backend.Filter where
-import Control.Monad (liftM2, forever)
+import Control.Monad (liftM2, forever, when)
 import Control.Monad.State.Class
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.State.Strict (StateT)
@@ -79,10 +79,7 @@ applyFilter = for cat $ \case
   Packet p msg -> do
     let msgAddr = extractAddress msg
     shouldYield <- applyFilter' p msgAddr
-    if shouldYield
-      then yield msg
-      else pure ()
-
+    when shouldYield $ yield msg
     updatePrev p msgAddr
 
 {-
