@@ -57,7 +57,7 @@ import VMCMixer.Types
 
 -- | State
 data FilterLayerState = FilterLayerState { _messageFilter :: Filter
-                                         , _previousPerformer :: HMap.HashMap MarionetteMsgAddresses Performer
+                                         , _previousPerformer :: HMap.HashMap MarionetteMsgAddresses [Performer]
                                          }
 makeLenses ''FilterLayerState
 
@@ -97,12 +97,14 @@ applyFilter' p msgAddr = do
     (Just ps, Nothing) -> return True
     (Just ps, Just prev') ->
       -- Lower number has higher priority
-      let prevPerformerPriority    = fromMaybe 10000 $ List.elemIndex prev' ps
+      let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
           currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
-      in return $ prevPerformerPriority > currentPerformerPriority
+      in if currentPerformerPriority < head prevPerformerPriority
+         then return True
+         else return $ all (== p) prev'
 
 -- | Update
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
 updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-updatePrev p msgAddr = modify $ previousPerformer%~HMap.update (const $ Just p) msgAddr
+updatePrev p msgAddr = modify $ previousPerformer%~HMap.update (\v -> Just . take 10 $ p:v) msgAddr
