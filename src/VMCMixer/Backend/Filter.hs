@@ -107,4 +107,4 @@ applyFilter' p msgAddr = do
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
 updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
-updatePrev p msgAddr = modify $ previousPerformer%~HMap.update (\v -> Just . take 10 $ p:v) msgAddr
+updatePrev p msgAddr = modify $ previousPerformer%~HMap.insertWith (\n o -> take 10 $ n++o) msgAddr [p]
