@@ -26,7 +26,6 @@ You should have received a copy of the GNU General Public License along with vmc
 
 == フィルタリングの仕組み
 
-「複数の 'Performer' から同時に受け取る時、パケットはパイプラインには交互に並んでいる」という前提のもと、
 「より優先順位の高い 'Performer' からパケットが送信されている間は、優先度の低い 'Performer' からの
 パケットは送信しない」ようにしています。
 
@@ -86,6 +85,37 @@ applyFilter = for cat $ \case
 
     updatePrev p msgAddr
 
+{-
+この時点の実装だと、同じ 'Performer' からのパケットを連続で受け取った際は 'then' 節ではなく
+'else' 節に行く ('<' であり '<=' でないため)
+そうするとこのフィルターを通るためには直近に送信されたパケットが全て同じ 'Performer' からのものである必要があるが、
+複数の 'Performer' からデータが送られてくる以上、直近の規定数が同じ 'Performer' からのものである確率はそんなに高くない。
+その結果として、送信しない判断が出されやすい。
+
+最も優先順位が高い 'Performer' でも同じことが起きてしまい、結果として何も送信されないといった事態になる。
+
+かといって '<=' にするとどうなるか。今度は同じ 'Performer' からのパケットを連続で受け取った際は全て 'else' 節に
+行くこととなり、これは優先順位の低い 'Performer' に関しても同じことが言える。
+つまり、誤って送信する判断が取られやすい。
+
+
+ここで、「前回の 'Performer' と今回のパケットを送信してきた 'Performer' と送信可否の組合せ」を考えるとこんな感じになる:
+
+| 前回 | 今回 | 送信する？        |
+| Low  | Low  | 'else' 節に任せる |
+| Low  | High | YES               |
+| High | Low  | No                |
+| High | High | YES               |
+
+これを見ると、「同じ
+
+但し、2以上の 'Performer' から同じ 'MarionetteMsgAddresses' のパケットが送られてきた場合の事を考えると
+その通りでもない
+
+'_previousPerformer' に溜まった 'Performer' の中で、一つでも優先順位の高いパケットがあれば送信しない、
+なければ送信する、という判断でどうか？
+-}
+
 -- | Apply filter
 applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
 applyFilter' p msgAddr = do
@@ -99,9 +129,7 @@ applyFilter' p msgAddr = do
       -- Lower number has higher priority
       let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
           currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
-      in if currentPerformerPriority < head prevPerformerPriority
-         then return True
-         else return $ all (== p) prev'
+      in return $ all (currentPerformerPriority <=) prevPerformerPriority
 
 -- | Update
 --
