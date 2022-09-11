@@ -23,6 +23,17 @@ You should have received a copy of the GNU General Public License along with vmc
 
 本来は 'MarionetteMsg' だけでなく 'VMCPMessage' インスタンスを持つ型全て
 に対応するのが良いですが、現状 'MarionetteMsg' しかないので一旦これで。
+
+== フィルタリングの仕組み
+
+「複数の 'Performer' から同時に受け取る時、パケットはパイプラインには交互に並んでいる」という前提のもと、
+「より優先順位の高い 'Performer' からパケットが送信されている間は、優先度の低い 'Performer' からの
+パケットは送信しない」ようにしています。
+
+具体的には各 'MarionetteMsgAddresses' 毎に直前にフィルターを通ったパケットの送信元 'Performer' を記録しておき、
+それと新しく来たパケットの送信元 'Performer' の優先順位を比較、優先順位が高い場合のみ送信
+するようにしています。
+
 -}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
