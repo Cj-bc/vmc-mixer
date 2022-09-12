@@ -124,6 +124,10 @@ applyFilter' p msgAddr layerState =
        (Just ps, Nothing) -> True
        (Just ps, Just prev') ->
          -- Lower number has higher priority
+         --
+         -- I've considered to determine highest priority value dynamically instead of using 10000,
+         -- (e.g. @let highestPriority = length ps@)
+         -- but I leaved it alone to reduce calculation cost.
          let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
              currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
          in all (currentPerformerPriority <=) prevPerformerPriority

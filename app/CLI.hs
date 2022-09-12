@@ -42,6 +42,10 @@ main = do
   let _fallback = Performer 39541 (Just "waidayo") -- TODO: Read fallback from command option
 
   output <- async $ sendIt _fallback (opt^.Opt.marionette) msgIn
+
+  -- TODO: Add filter here
+  -- toInput (UpdateFilter ...
+
   as <- forM (opt^.Opt.performers) $ \p -> do
     a <- async $ awaitPacket p msgOut
     link a
