@@ -78,7 +78,7 @@ applyFilter = for cat $ \case
     modify $ messageFilter.~f
   Packet p msg -> do
     let msgAddr = extractAddress msg
-    shouldYield <- applyFilter' p msgAddr
+    shouldYield <- gets $ applyFilter' p msgAddr
     when shouldYield $ yield msg
     updatePrev p msgAddr
 
@@ -114,19 +114,20 @@ applyFilter = for cat $ \case
 -}
 
 -- | Apply filter
-applyFilter' :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) Bool
-applyFilter' p msgAddr = do
-  fil <- gets (HMap.lookup msgAddr .view (messageFilter.filters))
-  prev <- gets (HMap.lookup msgAddr . view previousPerformer)
-  case (fil, prev) of
-    -- If filter isn't set, that message should be passed
-    (Nothing, _) -> return True
-    (Just ps, Nothing) -> return True
-    (Just ps, Just prev') ->
-      -- Lower number has higher priority
-      let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
-          currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
-      in return $ all (currentPerformerPriority <=) prevPerformerPriority
+applyFilter' :: Performer -> MarionetteMsgAddresses -> FilterLayerState -> Bool
+applyFilter' p msgAddr layerState =
+  let fil  = HMap.lookup msgAddr .view (messageFilter.filters) $ layerState
+      prev = HMap.lookup msgAddr . view previousPerformer $ layerState
+  in case (fil, prev) of
+       -- If filter isn't set, that message should be passed
+       (Nothing, _) -> True
+       (Just ps, Nothing) -> True
+       (Just ps, Just prev') ->
+         -- Lower number has higher priority
+         let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
+             currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
+         in all (currentPerformerPriority <=) prevPerformerPriority
+
 
 -- | Update
 --
