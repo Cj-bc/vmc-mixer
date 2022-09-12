@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
 module VMCMixer.Backend.Filter where
 import Control.Monad (liftM2, forever, when)
 import Control.Monad.State.Class
@@ -48,10 +49,11 @@ import Data.VMCP.Marionette (MarionetteMsg)
 import Data.VRM (BlendShapeExpression)
 import Data.UnityEditor (HumanBodyBones)
 import Lens.Micro.TH (makeLenses)
-import Lens.Micro ((%~), (.~))
+import Lens.Micro ((%~), (.~), (^.))
 import Lens.Micro.Extras (view)
 import Pipes (Pipe, await, yield, cat, for)
 import VMCMixer.Types
+import Control.Monad.Writer (MonadWriter, tell)
 
 
 -- | State
@@ -72,14 +74,18 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- It will check
 -- + Where the packet is came from
 -- + Wheather higher-prioritized packet isn't ongoing
-applyFilter :: MonadIO m => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
+applyFilter :: (MonadIO m, MonadWriter [String] m) => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 applyFilter = for cat $ \case
   UpdateFilter f ->
     modify $ messageFilter.~f
   Packet p msg -> do
     let msgAddr = extractAddress msg
+    tell [show (p^.performerPort) ++ ": " ++ show msgAddr]
     shouldYield <- gets $ applyFilter' p msgAddr
-    when shouldYield $ yield msg
+    prevs <- gets (HMap.lookup msgAddr . view previousPerformer)
+    if shouldYield
+      then yield msg
+      else tell ["FILTERED: " ++ show (p^.performerPort) ++ ": " ++ show msgAddr ++ "; " ++ show prevs]
     updatePrev p msgAddr
 
 {-
