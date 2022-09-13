@@ -10,14 +10,15 @@ Portability :  portable
 "Backend" is codes that treats VMCP messages.
 Those functions are separated from UI.
 -}
-
+{-# LANGUAGE  ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 module VMCMixer.Backend (
   mainLoop
 , sendIt
 , awaitPacket
   ) where
 
-import Control.Concurrent.Async (async, link, Async, cancel)
+import Control.Concurrent.Async (async, link, Async, cancel, AsyncCancelled (AsyncCancelled))
 import Control.Monad (forever, forM_, join)
 import Control.Monad.State.Strict (execStateT, StateT(..), modify', get)
 import Data.List (find)
@@ -38,8 +39,15 @@ import Control.Exception (finally)
 import qualified Data.Text as T
 
 -- | Treats brick UI's event and do whatever we need.
-mainLoop :: (IO VMCMixerUIEvent) -> Output SenderCmd -> [Performer] -> IO [Async ()]
-mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execStateT (spawnInitials >> go) []
+mainLoop :: IO VMCMixerUIEvent -> Output SenderCmd -> [Performer] -> IO ()
+mainLoop readUIEvent packetOutput initialInputs = do
+  children <- execStateT (spawnInitials >> go) []
+  -- Stop all 'awaitPacket' asyncs
+  -- By explictly stop them, 'sendIt' async will also
+  -- stop because 'fromInput' will be terminated.
+  -- For more, please refer to pipes-concurrency's document:
+  -- https://hackage.haskell.org/package/pipes-concurrency-2.0.14/docs/Pipes-Concurrent-Tutorial.html#g:3
+  sequence_ $ cancel . snd <$> children
   where
     spawn :: Performer -> StateT [(Performer, Async ())] IO ()
     spawn performer = do
@@ -51,20 +59,30 @@ mainLoop readUIEvent packetOutput initialInputs =  return . fmap snd =<< execSta
     spawnInitials = forM_ initialInputs spawn
 
     go :: StateT [(Performer, Async ())] IO ()
-    go = forever $ do
-      msg <- liftIO readUIEvent
-      case msg of
-        NewAddr p -> spawn p
-          -- TODO: Let brick know that work is done by emitting Msg
-        RemoveAddr p -> do
-          s <- get
-          case find ((== p) . fst) s of
-            Nothing -> pure ()
-            Just (_, asyncObj) -> do
-              liftIO $ cancel asyncObj
-              modify' $ filter ((/= p) . fst)
-        UIEventUpdateFilter filter ->
-          runEffect $ yield (UpdateFilter filter) >-> toOutput packetOutput
+    go = do
+      -- In order to return all 'Async's inside State,
+      -- I have to escape from loop when 'mainLoop' receives
+      -- cancellation.
+      msgOrQuit <- liftIO $ (Right <$> readUIEvent)
+                   `catch` \(_ :: AsyncCancelled) -> return $ Left ()
+      case msgOrQuit of
+        Left _ -> pure ()
+        Right msg -> executeMessage msg >> go
+
+    -- | run 'VMCMixerUIEvent'
+    executeMessage :: VMCMixerUIEvent -> StateT [(Performer, Async ())] IO ()
+    executeMessage = \case
+      NewAddr p -> spawn p
+      -- TODO: Let brick know that work is done by emitting Msg
+      RemoveAddr p -> do
+        s <- get
+        case find ((== p) . fst) s of
+          Nothing -> pure ()
+          Just (_, asyncObj) -> do
+            liftIO $ cancel asyncObj
+            modify' $ filter ((/= p) . fst)
+      UIEventUpdateFilter filter ->
+        runEffect $ yield (UpdateFilter filter) >-> toOutput packetOutput
 
 -- | Run 'sendIt'' with UDP socket bracket.
 sendIt :: Performer -> Marionette -> Input SenderCmd -> IO ()
