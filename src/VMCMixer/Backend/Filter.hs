@@ -122,14 +122,14 @@ applyFilter = for cat $ \case
 -- | Apply filter
 applyFilter' :: Performer -> MarionetteMsgAddresses -> FilterLayerState -> Bool
 applyFilter' p msgAddr layerState =
-  let fil  = HMap.lookup msgAddr .view (messageFilter.filters) $ layerState
+  let fil  = HMap.lookup msgAddr . view (messageFilter.filters) $ layerState
       filter_ = view messageFilter layerState
       prev = HMap.lookup msgAddr . view previousPerformer $ layerState
   in case (fil, prev) of
        -- If filter isn't set, that message should be passed
        (Nothing, _) -> True
-       (Just ps, Nothing) -> True
-       (Just ps, Just prev') ->
+       (Just _, Nothing) -> True
+       (Just _, Just prev') ->
          let prevPerformerPriority    = calcPriority filter_ msgAddr <$> prev'
              currentPerformerPriority = calcPriority filter_ msgAddr p
          in all (currentPerformerPriority <=) prevPerformerPriority
