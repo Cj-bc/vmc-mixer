@@ -35,7 +35,7 @@ import Data.VMCP.Message (VMCPMessage, fromOSCMessage)
 import Lens.Micro ((^.))
 import qualified Network.Socket as N
 import Control.Monad.Writer (runWriterT)
-import Control.Exception (finally)
+import Control.Exception (finally, catch)
 import qualified Data.Text as T
 
 -- | Treats brick UI's event and do whatever we need.
