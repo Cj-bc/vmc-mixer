@@ -81,3 +81,4 @@ main = do
   defaultMain app (initialState brickCh performerAddrs)
 
   void $ cancel restAsyncs
+  appendFile "/tmp/vmc-mixer.log" "[TUI] defaultMain exited\n"
