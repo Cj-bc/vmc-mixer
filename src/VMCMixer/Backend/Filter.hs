@@ -123,20 +123,26 @@ applyFilter = for cat $ \case
 applyFilter' :: Performer -> MarionetteMsgAddresses -> FilterLayerState -> Bool
 applyFilter' p msgAddr layerState =
   let fil  = HMap.lookup msgAddr .view (messageFilter.filters) $ layerState
+      filter_ = view messageFilter layerState
       prev = HMap.lookup msgAddr . view previousPerformer $ layerState
   in case (fil, prev) of
        -- If filter isn't set, that message should be passed
        (Nothing, _) -> True
        (Just ps, Nothing) -> True
        (Just ps, Just prev') ->
-         -- Lower number has higher priority
-         --
-         -- I've considered to determine highest priority value dynamically instead of using 10000,
-         -- (e.g. @let highestPriority = length ps@)
-         -- but I leaved it alone to reduce calculation cost.
-         let prevPerformerPriority    = fromMaybe 10000 . flip List.elemIndex ps <$> prev'
-             currentPerformerPriority = fromMaybe 10000 $ List.elemIndex p ps
+         let prevPerformerPriority    = calcPriority filter_ msgAddr <$> prev'
+             currentPerformerPriority = calcPriority filter_ msgAddr p
          in all (currentPerformerPriority <=) prevPerformerPriority
+
+-- | Calculate priority value for given Performer based on given 'Filter'
+--
+-- If 'Performer' isn't on filter list, it'll get lowest priority
+--
+-- Priority will _decrease_ as value gets bigger.
+-- i.e. highest priority value is @0@.
+calcPriority :: Filter -> MarionetteMsgAddresses -> Performer -> Int
+calcPriority f addr p = fromMaybe maxBound
+  $ HMap.lookup addr (view filters f) >>= List.elemIndex p
 
 
 -- | Update
