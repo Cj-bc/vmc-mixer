@@ -98,8 +98,9 @@ sendIt _fallback addr msgIn = withTransport (udp_server . fromIntegral $ N.defau
 
 awaitPacket :: Performer -> Output SenderCmd -> IO ()
 awaitPacket performer output =
-  withTransport (udp_server (performer^.performerPort)) $ \socket -> do
-    runEffect $ (recvMarionetteMsgWithUdp socket)
-      >-> for cat (yield . Packet performer)
-      >-> toOutput output
-    performGC
+  flip finally performGC
+     $ withTransport (udp_server (performer^.performerPort)) $ \socket -> do
+        runEffect
+          $ recvMarionetteMsgWithUdp socket
+          >-> for cat (yield . Packet performer)
+          >-> toOutput output
