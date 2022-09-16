@@ -39,7 +39,7 @@ Main thread --- Event manager -+- receiver
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 module Main where
 
-import Control.Concurrent.Async (async, Async, cancel)
+import Control.Concurrent.Async (async, Async, cancel, wait)
 import Control.Monad (void)
 import Data.VMCP.Marionette (MarionetteMsg)
 import VMCMixer.UI.Brick.Event
@@ -80,5 +80,6 @@ main = do
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs
   defaultMain app (initialState brickCh performerAddrs)
 
-  void $ cancel restAsyncs
   appendFile "/tmp/vmc-mixer.log" "[TUI] defaultMain exited\n"
+  cancel restAsyncs
+  void $ wait output
