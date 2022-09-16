@@ -41,17 +41,13 @@ import qualified Data.Text as T
 -- | Treats brick UI's event and do whatever we need.
 mainLoop :: IO VMCMixerUIEvent -> Output SenderCmd -> [Performer] -> IO ()
 mainLoop readUIEvent packetOutput initialInputs = do
-  appendFile "/tmp/vmc-mixer.log" "[mainLoop]\tstarted.\n"
   children <- execStateT (spawnInitials >> go) []
-  appendFile "/tmp/vmc-mixer.log" "[mainLoop]\tmain Loop finished. Doing cleanup...\n"
   -- Stop all 'awaitPacket' asyncs
   -- By explictly stop them, 'sendIt' async will also
   -- stop because 'fromInput' will be terminated.
   -- For more, please refer to pipes-concurrency's document:
   -- https://hackage.haskell.org/package/pipes-concurrency-2.0.14/docs/Pipes-Concurrent-Tutorial.html#g:3
   sequence_ $ cancel . snd <$> children
-  appendFile "/tmp/vmc-mixer.log" "[mainLoop]\texited\n"
-
   where
     spawn :: Performer -> StateT [(Performer, Async ())] IO ()
     spawn performer = do
@@ -69,7 +65,6 @@ mainLoop readUIEvent packetOutput initialInputs = do
       -- cancellation.
       msgOrQuit <- liftIO $ (Right <$> readUIEvent)
                    `catch` \(_ :: AsyncCancelled) -> return $ Left ()
-      liftIO $ appendFile "/tmp/vmc-mixer.log" "[mainLoop]\tmsg is provided\n"
       case msgOrQuit of
         Left _ -> pure ()
         Right msg -> executeMessage msg >> go
@@ -86,8 +81,7 @@ mainLoop readUIEvent packetOutput initialInputs = do
           Just (_, asyncObj) -> do
             liftIO $ cancel asyncObj
             modify' $ filter ((/= p) . fst)
-      UIEventUpdateFilter filter -> do
-        liftIO $ appendFile "/tmp/vmc-mixer.log" ("[mainLoop]\tFilter is updated to:" ++ show filter ++ "\n")
+      UIEventUpdateFilter filter ->
         runEffect $ yield (UpdateFilter filter) >-> toOutput packetOutput
 
 -- | Run 'sendIt'' with UDP socket bracket.

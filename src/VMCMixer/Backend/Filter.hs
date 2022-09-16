@@ -76,26 +76,16 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- + Wheather higher-prioritized packet isn't ongoing
 applyFilter :: (Monad m, MonadWriter [String] m) => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 applyFilter = for cat $ \case
-  UpdateFilter f -> do
-    tell ["[applyFilter]\tUpdating Filter to:\t" ++ show f ++ "\n"]
+  UpdateFilter f ->
     modify $ messageFilter.~f
-    f' <- gets (view messageFilter)
-    tell ["[applyFilter]\tCurrently active filter:\t" ++ show f' ++ "\n"]
   Packet p msg -> do
     let msgAddr = extractAddress msg
-
-    -- v For debug log v
-    prevs <- gets $ HMap.lookup msgAddr . view previousPerformer
-    fil   <- gets $ HMap.lookup msgAddr .view (messageFilter.filters)
-    tell [show (p^.performerPort) ++ ":\t" ++ show msgAddr ++ "\thavePrev?:\t"
-          ++ show (isJust  prevs) ++ "\thasFilter\t" ++ show (isJust fil)]
-    -- ^ For debug log ^
-
+    tell [show (p^.performerPort) ++ ": " ++ show msgAddr]
     shouldYield <- gets $ applyFilter' p msgAddr
+    prevs <- gets (HMap.lookup msgAddr . view previousPerformer)
     if shouldYield
       then yield msg
-      else tell ["FILTERED:\t" ++ show (p^.performerPort) ++ ":\t"
-                 ++ show msgAddr ++ ";\t" ++ show prevs]
+      else tell ["FILTERED: " ++ show (p^.performerPort) ++ ": " ++ show msgAddr ++ "; " ++ show prevs]
     updatePrev p msgAddr
 
 {-

@@ -80,6 +80,5 @@ main = do
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs
   defaultMain app (initialState brickCh performerAddrs)
 
-  appendFile "/tmp/vmc-mixer.log" "[TUI] defaultMain exited\n"
   cancel restAsyncs
   void $ wait output
