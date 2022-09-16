@@ -5,7 +5,7 @@ module VMCMixer.Backend.FilterSpec where
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
-import VMCMixer.Backend.Filter (filterLayerInitialState, FilterLayerState (FilterLayerState), applyFilter', applyFilter, SenderCmd(Packet))
+import VMCMixer.Backend.Filter (filterLayerInitialState, FilterLayerState (FilterLayerState), applyFilter', applyFilter, SenderCmd(Packet), calcPriority)
 import VMCMixer.Types (Performer(Performer), MarionetteMsgAddresses(Time, RootTransform), Filter(Filter))
 import qualified Data.Vector as V
 import qualified Data.HashMap.Strict as HMap
@@ -64,3 +64,21 @@ spec = do
                              ,Packet p2 (Marionette.Time 7)
                              ]  >-> applyFilter
       in result `shouldBe` [Marionette.Time 0, Marionette.Time 5, Marionette.Time 6]
+
+  describe "calcPriority" $ do
+    it "should treat fallback as lowest priority" $
+      let filter_ = Filter (Performer 0 Nothing) (HMap.fromList [(Time, [Performer 1 Nothing])])
+      in calcPriority filter_ Time (Performer 0 Nothing) `shouldBe` maxBound
+
+    it "should treat Performers not on the filter list as lowest priority" $
+      let filter_ = Filter (Performer 0 Nothing) (HMap.fromList [(Time, [Performer 1 Nothing])])
+      in calcPriority filter_ Time (Performer 3 Nothing) `shouldBe` maxBound
+
+    it "should return 0 as highest priority" $
+      let filter_ = Filter (Performer 0 Nothing) (HMap.fromList [(Time, [Performer 1 Nothing, Performer 2 Nothing])])
+      in calcPriority filter_ Time (Performer 1 Nothing) `shouldBe` 0
+        
+    it "should give priority based on order" $
+      let filter_ = Filter (Performer 0 Nothing)
+                    (HMap.fromList [(Time, [Performer 1 Nothing, Performer 2 Nothing, Performer 3 Nothing])])
+      in calcPriority filter_ Time <$> [Performer 1 Nothing, Performer 2 Nothing, Performer 3 Nothing] `shouldBe` [0, 1, 2]
