@@ -74,7 +74,7 @@ data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filt
 -- It will check
 -- + Where the packet is came from
 -- + Wheather higher-prioritized packet isn't ongoing
-applyFilter :: (MonadIO m, MonadWriter [String] m) => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
+applyFilter :: (Monad m, MonadWriter [String] m) => Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 applyFilter = for cat $ \case
   UpdateFilter f ->
     modify $ messageFilter.~f
@@ -142,5 +142,5 @@ applyFilter' p msgAddr layerState =
 -- | Update
 --
 -- 指定した 'MarionetteMsgAddresses' を前回投げた
-updatePrev :: MonadIO m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
+updatePrev :: Monad m => Performer -> MarionetteMsgAddresses -> Pipe SenderCmd MarionetteMsg (StateT FilterLayerState m) ()
 updatePrev p msgAddr = modify $ previousPerformer%~HMap.insertWith (\n o -> take 10 $ n++o) msgAddr [p]
