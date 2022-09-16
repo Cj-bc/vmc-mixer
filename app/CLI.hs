@@ -26,7 +26,7 @@ module Main where
 import VMCMixer.Types (Performer(Performer))
 import VMCMixer.Backend (sendIt, awaitPacket)
 import VMCMixer.Backend.Filter (SenderCmd)
-import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_)
+import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_, wait)
 import VMCMixer.Options  (getOption)
 import qualified VMCMixer.Options as Opt
 import Lens.Micro ((^.))
@@ -52,4 +52,5 @@ main = do
     return a
   -- forConcurrently_ (opt^.Opt.inputs) $ flip awaitPacket msgOut
   waitAny (output:as)
-  void $ forM  (output:as) cancel
+  void $ forM  as cancel
+  void $ wait output
