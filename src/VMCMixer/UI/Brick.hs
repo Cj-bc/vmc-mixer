@@ -115,7 +115,8 @@ app :: App AppState VMCMixerUIEvent Name
 app = App { appDraw = ui
           , appChooseCursor = neverShowCursor
           , appHandleEvent  = eHandler
-          , appStartEvent   = return
+          , appStartEvent   = \s -> liftIO (writeBChan (s^.uiEventEmitter) (UIEventUpdateFilter $ toFilter (s^.filterD)))
+                                    >> return s
           , appAttrMap      = const vmcmAttrmap
           }
 
