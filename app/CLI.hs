@@ -41,12 +41,11 @@ main = do
   (msgOut, msgIn) <- spawn unbounded :: IO (Mailbox SenderCmd)
 
   print $ "Input from: " ++ (show $ opt^.Opt.performers)
-  let _fallback = Performer 39541 (Just "waidayo") -- TODO: Read fallback from command option
 
-  output <- async $ sendIt _fallback (opt^.Opt.marionette) msgIn
+  output <- async $ sendIt (opt^.Opt.marionette) msgIn
 
   -- set filter
-  let filter_ = Filter (Performer 39541 Nothing) $ HMap.fromList [(RootTransform, [Performer 39542 Nothing])]
+  let filter_ = Filter $ HMap.fromList [(RootTransform, [Performer 39542 Nothing])]
   runEffect $ yield (UpdateFilter filter_) >-> toOutput msgOut
 
   as <- forM (opt^.Opt.performers) $ \p -> do

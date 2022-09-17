@@ -79,8 +79,7 @@ extractAddress msg = case msg of
                                                  ]
 
 -- | Represents one filter
-data Filter = Filter { _fallback :: Performer
-                     , _filters :: HMap.HashMap MarionetteMsgAddresses [Performer] -- ^ Use those 
-                     }
+data Filter = Filter { _filters :: HMap.HashMap MarionetteMsgAddresses [Performer] -- ^ Use those 
+                     } deriving (Show, Eq)
 makeLenses ''Filter
 

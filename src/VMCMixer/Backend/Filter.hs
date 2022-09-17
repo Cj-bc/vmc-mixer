@@ -62,8 +62,8 @@ data FilterLayerState = FilterLayerState { _messageFilter :: Filter
                                          }
 makeLenses ''FilterLayerState
 
-filterLayerInitialState :: Performer -> FilterLayerState
-filterLayerInitialState fallback = FilterLayerState (Filter fallback HMap.empty) HMap.empty
+filterLayerInitialState :: FilterLayerState
+filterLayerInitialState = FilterLayerState (Filter HMap.empty) HMap.empty
 
 -- | Command sender to do some action
 data SenderCmd = UpdateFilter Filter -- ^ Update filter information used in filter

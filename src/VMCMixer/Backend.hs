@@ -85,9 +85,9 @@ mainLoop readUIEvent packetOutput initialInputs = do
         runEffect $ yield (UpdateFilter filter) >-> toOutput packetOutput
 
 -- | Run 'sendIt'' with UDP socket bracket.
-sendIt :: Performer -> Marionette -> Input SenderCmd -> IO ()
-sendIt _fallback addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
-  (a, w) <- runWriterT . flip execStateT (filterLayerInitialState _fallback)
+sendIt :: Marionette -> Input SenderCmd -> IO ()
+sendIt addr msgIn = withTransport (udp_server . fromIntegral $ N.defaultPort) $ \socket -> do
+  (a, w) <- runWriterT . flip execStateT filterLayerInitialState
             $ runEffect (fromInput msgIn
                          >-> applyFilter
                          >-> mkPacket

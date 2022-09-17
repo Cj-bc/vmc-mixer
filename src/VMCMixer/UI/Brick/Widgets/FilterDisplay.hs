@@ -25,12 +25,10 @@ module VMCMixer.UI.Brick.Widgets.FilterDisplay (
   -- ** Lenses
 , displayName
 , containedFilters
-, fallbackFilter
   -- ** Modification
 , toFilter
 , filterAdd
 , filterRemove
-, filterSetFallback
 
   -- * Brick
 , handleFilterDisplayEvent
@@ -38,7 +36,6 @@ module VMCMixer.UI.Brick.Widgets.FilterDisplay (
   -- ** Widget rendering
 , filterDisplay
 , renderPerformer    
-, renderFallback     
 , renderFilterDisplay
 , renderFilterInfoRow
 
@@ -63,13 +60,11 @@ import Data.Zipper
 
 data FilterDisplay n = FilterDisplay { _displayName :: n
                                      , _containedFilters :: Zipper (MarionetteMsgAddresses, V.Vector Performer)
-                                     , _fallbackFilter :: (n, Performer)
                                      }
 makeLenses ''FilterDisplay
 
 toFilter :: FilterDisplay n -> Filter
-toFilter d = Filter (d^.fallbackFilter._2)
-             . HMap.fromList
+toFilter d = Filter $ HMap.fromList
              . over (each._2) V.toList
              $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
 
@@ -81,12 +76,8 @@ filterAdd p display = display&containedFilters.peeked._2%~(`V.snoc` p)
 filterRemove :: Performer -> FilterDisplay n -> FilterDisplay n
 filterRemove p display = display&containedFilters.peeked._2%~V.filter (/= p)
 
--- | Set new fallback 'Performer'
-filterSetFallback :: Performer -> FilterDisplay n -> FilterDisplay n
-filterSetFallback p display = display&fallbackFilter._2.~p
-
-filterDisplay :: n -> [(MarionetteMsgAddresses, V.Vector Performer)] -> (n, Performer) -> FilterDisplay n
-filterDisplay n (peeked':rest) fallback = FilterDisplay n (Zipper peeked' [] rest) fallback
+filterDisplay :: n -> [(MarionetteMsgAddresses, V.Vector Performer)] -> FilterDisplay n
+filterDisplay n (peeked':rest) = FilterDisplay n (Zipper peeked' [] rest)
 
 instance Named (FilterDisplay n) n where
   getName = view displayName
@@ -97,11 +88,6 @@ renderPerformer performer = hBox [txt . maybe "" id $ view performerName perform
                                 , str $ " (" ++ (show $ view performerPort performer) ++ ")"
                                 ]
 
--- | Widget to display fallback 'Performer'.
-renderFallback :: (Ord n, Show n) => FilterDisplay n -> Widget n
-renderFallback fs = let (name, p) = view fallbackFilter fs
-                    in clickable name (renderPerformer p)
- 
 -- | Main renderer function for 'FilterDisplay'
 --
 -- Uses will needs to use this
@@ -111,7 +97,7 @@ renderFilterDisplay isFocused map =
                         , [(True, map^.containedFilters.peeked)]
                         , (False,) <$> map^.containedFilters.after
                         ]
-  in vBox $ [renderFallback map, hBorder] ++ (uncurry renderFilterInfoRow <$> filters)
+  in vBox $ hBorder:(uncurry renderFilterInfoRow <$> filters)
 
 -- | Widget to display one 'MarionetteMsgAddresses'
 renderFilterInfoRow :: (Ord n, Show n) => Bool -> (MarionetteMsgAddresses, V.Vector Performer) -> Widget n

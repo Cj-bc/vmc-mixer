@@ -74,7 +74,7 @@ main = do
   -- Opens outputSocket, send messages received.
   -- 'N.defaultPort' will let system decide what port number to use.
   -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html#v:bind
-  output <- async $ sendIt _fallback marionetteAddr msgIn
+  output <- async $ sendIt marionetteAddr msgIn
 
   brickCh <- newBChan 1
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs
