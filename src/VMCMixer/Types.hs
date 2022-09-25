@@ -29,10 +29,22 @@ import qualified Data.VMCP.Marionette as Marionette
 import qualified Data.Map.Strict as Map
 import qualified Data.HashMap.Strict as HMap
 
+-- | Represents one 'Performer'
+--
+-- Performer is the program that is sending motion data.
+--
+-- Note: _name of 'Performer' isn't used in 'Eq' instance_ .
+-- That means _Performers with same port but different name will be
+-- determined as identical_
 data Performer = Performer { _performerPort :: Int
                            , _performerName :: Maybe Text
-                           } deriving (Show, Eq)
+                           } deriving (Show)
 makeLenses ''Performer
+
+-- | As each 'Performer's are bound to port number,
+-- it's better to identify them by it.
+instance Eq Performer where
+  p1 == p2 = p1^.performerPort == p2^.performerPort
 
 data Marionette = Marionette { _marionetteAddress :: String
                              , _marionettePort :: Int
