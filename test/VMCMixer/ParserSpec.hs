@@ -7,6 +7,7 @@ import Test.Hspec.QuickCheck
 import Data.Attoparsec.Text
 import qualified Data.Text as T
 import qualified Data.UnityEditor as UE
+import qualified Data.VRM as VRM
 
 tryParse :: Parser a -> T.Text -> Maybe a
 tryParse parser txt = maybeResult (parse parser txt `feed` (T.pack ""))
@@ -137,3 +138,28 @@ spec = do
 
     it "should be case-insensitive" $
       humanBodyBones `tryParse` (T.pack "NeCK") == humanBodyBones `tryParse` (T.pack "Neck")
+
+  describe "blendShapeExpression" $ do
+    it "should parse all valid names" $ foldl1 (&&)
+      [ blendShapeExpression `tryParse` (T.pack "Neutral")   == Just VRM.Neutral
+      , blendShapeExpression `tryParse` (T.pack "A")         == Just VRM.A
+      , blendShapeExpression `tryParse` (T.pack "I")         == Just VRM.I
+      , blendShapeExpression `tryParse` (T.pack "U")         == Just VRM.U
+      , blendShapeExpression `tryParse` (T.pack "E")         == Just VRM.E
+      , blendShapeExpression `tryParse` (T.pack "O")         == Just VRM.O
+      , blendShapeExpression `TryParse` (T.pack "Blink")     == Just VRM.Blink
+      , blendShapeExpression `tryParse` (T.pack "Joy")       == Just VRM.Joy
+      , blendShapeExpression `tryParse` (T.pack "Angry")     == Just VRM.Angry
+      , blendShapeExpression `tryParse` (T.pack "Sorrow")    == Just VRM.Sorrow
+      , blendShapeExpression `tryParse` (T.pack "Fun")       == Just VRM.Fun
+      , blendShapeExpression `tryParse` (T.pack "LookUp")    == Just VRM.LookUp
+      , blendShapeExpression `tryParse` (T.pack "LookDown")  == Just VRM.LookDown
+      , blendShapeExpression `tryParse` (T.pack "LookLeft")  == Just VRM.LookLeft
+      , blendShapeExpression `tryParse` (T.pack "LookRight") == Just VRM.LookRight
+      , blendShapeExpression `tryParse` (T.pack "BlinkL")    == Just VRM.BlinkL
+      , blendShapeExpression `tryParse` (T.pack "BlinkR")    == Just VRM.BlinkR
+      ]
+    
+    it "should be case-insensitive" $
+      blendShapeExpression `tryParse` (T.pack "neuTrAl") == blendShapeExpression `tryParse` (T.pack "Neutral")
+    

@@ -160,3 +160,16 @@ humanBodyBones = choice $ fmap f allBones
                , RightLittleDistal
                , LastBone
                ]
+
+blendShapeExpression :: Parser BlendShapeExpression
+blendShapeExpression = choice $ fmap f allExps ++ [Custom . T.pack <$> many1 letter]
+  where
+    f exp = asciiCI (T.pack $ show exp) >> return exp
+    allExps =  [Neutral
+               , A, Data.VRM.I, U, E, O
+               , Blink
+               , Joy, Angry, Sorrow, Fun
+               , LookUp, LookDown
+               , LookLeft, LookRight
+               , BlinkL, BlinkR
+               ]
