@@ -6,6 +6,7 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Data.Attoparsec.Text
 import qualified Data.Text as T
+import qualified Data.UnityEditor as UE
 
 tryParse :: Parser a -> T.Text -> Maybe a
 tryParse parser txt = maybeResult (parse parser txt `feed` (T.pack ""))
@@ -82,3 +83,57 @@ spec = do
 
     it "should accept 'ADDRESS:PORT_NUMBER' format" $
       marionette `tryParse` (T.pack "foobar.org:300") == Just (Marionette "foobar.org" 300 Nothing)
+
+  describe "humanBodyBones" $ do
+    it "should parse all valid names" $ foldl1 (&&)
+      [ humanBodyBones `tryParse` (T.pack "Hips")                    == Just UE.Hips
+      , humanBodyBones `tryParse` (T.pack "LeftUpperLeg")            == Just UE.LeftUpperLeg
+      , humanBodyBones `tryParse` (T.pack "RightUpperLeg")           == Just UE.RightUpperLeg
+      , humanBodyBones `tryParse` (T.pack "LeftFoot")                == Just UE.LeftFoot
+      , humanBodyBones `tryParse` (T.pack "RightFoot")               == Just UE.RightFoot
+      , humanBodyBones `tryParse` (T.pack "Spine")                   == Just UE.Spine
+      , humanBodyBones `tryParse` (T.pack "Chest")                   == Just UE.Chest
+      , humanBodyBones `tryParse` (T.pack "UpperChest")              == Just UE.UpperChest
+      , humanBodyBones `tryParse` (T.pack "Neck")                    == Just UE.Neck
+      , humanBodyBones `tryParse` (T.pack "LeftShoulder")            == Just UE.LeftShoulder
+      , humanBodyBones `tryParse` (T.pack "RightShoulder")           == Just UE.RightShoulder
+      , humanBodyBones `tryParse` (T.pack "LeftUpperArm")            == Just UE.LeftUpperArm
+      , humanBodyBones `tryParse` (T.pack "RightUpperArm")           == Just UE.RightUpperArm
+      , humanBodyBones `tryParse` (T.pack "LeftLowerArm")            == Just UE.LeftLowerArm
+      , humanBodyBones `tryParse` (T.pack "RightLowerArm")           == Just UE.RightLowerArm
+      , humanBodyBones `tryParse` (T.pack "LeftHand")                == Just UE.LeftHand
+      , humanBodyBones `tryParse` (T.pack "RightHand")               == Just UE.RightHand
+      , humanBodyBones `tryParse` (T.pack "LeftToes")                == Just UE.LeftToes
+      , humanBodyBones `tryParse` (T.pack "RightToes")               == Just UE.RightToes
+      , humanBodyBones `tryParse` (T.pack "LeftIndexProximal")       == Just UE.LeftIndexProximal
+      , humanBodyBones `tryParse` (T.pack "LeftIndexIntermediate")   == Just UE.LeftIndexIntermediate
+      , humanBodyBones `tryParse` (T.pack "LeftIndexDistal")         == Just UE.LeftIndexDistal
+      , humanBodyBones `tryParse` (T.pack "LeftMiddleProximal")      == Just UE.LeftMiddleProximal
+      , humanBodyBones `tryParse` (T.pack "LeftMiddleIntermediate")  == Just UE.LeftMiddleIntermediate
+      , humanBodyBones `tryParse` (T.pack "LeftMiddleDistal")        == Just UE.LeftMiddleDistal
+      , humanBodyBones `tryParse` (T.pack "LeftRingProximal")        == Just UE.LeftRingProximal
+      , humanBodyBones `tryParse` (T.pack "LeftRingIntermediate")    == Just UE.LeftRingIntermediate
+      , humanBodyBones `tryParse` (T.pack "LeftRingDistal")          == Just UE.LeftRingDistal
+      , humanBodyBones `tryParse` (T.pack "LeftLittleProximal")      == Just UE.LeftLittleProximal
+      , humanBodyBones `tryParse` (T.pack "LeftLittleIntermediate")  == Just UE.LeftLittleIntermediate
+      , humanBodyBones `tryParse` (T.pack "LeftLittleDistal")        == Just UE.LeftLittleDistal
+      , humanBodyBones `tryParse` (T.pack "RightThumbProximal")      == Just UE.RightThumbProximal
+      , humanBodyBones `tryParse` (T.pack "RightThumbIntermediate")  == Just UE.RightThumbIntermediate
+      , humanBodyBones `tryParse` (T.pack "RightThumbDistal")        == Just UE.RightThumbDistal
+      , humanBodyBones `tryParse` (T.pack "RightIndexProximal")      == Just UE.RightIndexProximal
+      , humanBodyBones `tryParse` (T.pack "RightIndexIntermediate")  == Just UE.RightIndexIntermediate
+      , humanBodyBones `tryParse` (T.pack "RightIndexDistal")        == Just UE.RightIndexDistal
+      , humanBodyBones `tryParse` (T.pack "RightMiddleProximal")     == Just UE.RightMiddleProximal
+      , humanBodyBones `tryParse` (T.pack "RightMiddleIntermediate") == Just UE.RightMiddleIntermediate
+      , humanBodyBones `tryParse` (T.pack "RightMiddleDistal")       == Just UE.RightMiddleDistal
+      , humanBodyBones `tryParse` (T.pack "RightRingProximal")       == Just UE.RightRingProximal
+      , humanBodyBones `tryParse` (T.pack "RightRingIntermediate")   == Just UE.RightRingIntermediate
+      , humanBodyBones `tryParse` (T.pack "RightRingDistal")         == Just UE.RightRingDistal
+      , humanBodyBones `tryParse` (T.pack "RightLittleProximal")     == Just UE.RightLittleProximal
+      , humanBodyBones `tryParse` (T.pack "RightLittleIntermediate") == Just UE.RightLittleIntermediate
+      , humanBodyBones `tryParse` (T.pack "RightLittleDistal")       == Just UE.RightLittleDistal
+      , humanBodyBones `tryParse` (T.pack "LastBone")                == Just UE.LastBone
+      ]
+
+    it "should be case-insensitive" $
+      humanBodyBones `tryParse` (T.pack "NeCK") == humanBodyBones `tryParse` (T.pack "Neck")
