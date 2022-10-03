@@ -155,8 +155,8 @@ spec = do
       blendShapeExpression `tryParse` (T.pack "LookDown")  `shouldBe` Just VRM.LookDown
       blendShapeExpression `tryParse` (T.pack "LookLeft")  `shouldBe` Just VRM.LookLeft
       blendShapeExpression `tryParse` (T.pack "LookRight") `shouldBe` Just VRM.LookRight
-      blendShapeExpression `tryParse` (T.pack "BlinkL")    `shouldBe` Just VRM.BlinkL
-      blendShapeExpression `tryParse` (T.pack "BlinkR")    `shouldBe` Just VRM.BlinkR
+      blendShapeExpression `tryParse` (T.pack "Blink_L")   `shouldBe` Just VRM.BlinkL
+      blendShapeExpression `tryParse` (T.pack "Blink_R")   `shouldBe` Just VRM.BlinkR
     
     it "should be case-insensitive" $
       blendShapeExpression `tryParse` (T.pack "neuTrAl") == blendShapeExpression `tryParse` (T.pack "Neutral")
