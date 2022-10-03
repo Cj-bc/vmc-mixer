@@ -86,79 +86,77 @@ spec = do
       marionette `tryParse` (T.pack "foobar.org:300") == Just (Marionette "foobar.org" 300 Nothing)
 
   describe "humanBodyBones" $ do
-    it "should parse all valid names" $ foldl1 (&&)
-      [ humanBodyBones `tryParse` (T.pack "Hips")                    == Just UE.Hips
-      , humanBodyBones `tryParse` (T.pack "LeftUpperLeg")            == Just UE.LeftUpperLeg
-      , humanBodyBones `tryParse` (T.pack "RightUpperLeg")           == Just UE.RightUpperLeg
-      , humanBodyBones `tryParse` (T.pack "LeftFoot")                == Just UE.LeftFoot
-      , humanBodyBones `tryParse` (T.pack "RightFoot")               == Just UE.RightFoot
-      , humanBodyBones `tryParse` (T.pack "Spine")                   == Just UE.Spine
-      , humanBodyBones `tryParse` (T.pack "Chest")                   == Just UE.Chest
-      , humanBodyBones `tryParse` (T.pack "UpperChest")              == Just UE.UpperChest
-      , humanBodyBones `tryParse` (T.pack "Neck")                    == Just UE.Neck
-      , humanBodyBones `tryParse` (T.pack "LeftShoulder")            == Just UE.LeftShoulder
-      , humanBodyBones `tryParse` (T.pack "RightShoulder")           == Just UE.RightShoulder
-      , humanBodyBones `tryParse` (T.pack "LeftUpperArm")            == Just UE.LeftUpperArm
-      , humanBodyBones `tryParse` (T.pack "RightUpperArm")           == Just UE.RightUpperArm
-      , humanBodyBones `tryParse` (T.pack "LeftLowerArm")            == Just UE.LeftLowerArm
-      , humanBodyBones `tryParse` (T.pack "RightLowerArm")           == Just UE.RightLowerArm
-      , humanBodyBones `tryParse` (T.pack "LeftHand")                == Just UE.LeftHand
-      , humanBodyBones `tryParse` (T.pack "RightHand")               == Just UE.RightHand
-      , humanBodyBones `tryParse` (T.pack "LeftToes")                == Just UE.LeftToes
-      , humanBodyBones `tryParse` (T.pack "RightToes")               == Just UE.RightToes
-      , humanBodyBones `tryParse` (T.pack "LeftIndexProximal")       == Just UE.LeftIndexProximal
-      , humanBodyBones `tryParse` (T.pack "LeftIndexIntermediate")   == Just UE.LeftIndexIntermediate
-      , humanBodyBones `tryParse` (T.pack "LeftIndexDistal")         == Just UE.LeftIndexDistal
-      , humanBodyBones `tryParse` (T.pack "LeftMiddleProximal")      == Just UE.LeftMiddleProximal
-      , humanBodyBones `tryParse` (T.pack "LeftMiddleIntermediate")  == Just UE.LeftMiddleIntermediate
-      , humanBodyBones `tryParse` (T.pack "LeftMiddleDistal")        == Just UE.LeftMiddleDistal
-      , humanBodyBones `tryParse` (T.pack "LeftRingProximal")        == Just UE.LeftRingProximal
-      , humanBodyBones `tryParse` (T.pack "LeftRingIntermediate")    == Just UE.LeftRingIntermediate
-      , humanBodyBones `tryParse` (T.pack "LeftRingDistal")          == Just UE.LeftRingDistal
-      , humanBodyBones `tryParse` (T.pack "LeftLittleProximal")      == Just UE.LeftLittleProximal
-      , humanBodyBones `tryParse` (T.pack "LeftLittleIntermediate")  == Just UE.LeftLittleIntermediate
-      , humanBodyBones `tryParse` (T.pack "LeftLittleDistal")        == Just UE.LeftLittleDistal
-      , humanBodyBones `tryParse` (T.pack "RightThumbProximal")      == Just UE.RightThumbProximal
-      , humanBodyBones `tryParse` (T.pack "RightThumbIntermediate")  == Just UE.RightThumbIntermediate
-      , humanBodyBones `tryParse` (T.pack "RightThumbDistal")        == Just UE.RightThumbDistal
-      , humanBodyBones `tryParse` (T.pack "RightIndexProximal")      == Just UE.RightIndexProximal
-      , humanBodyBones `tryParse` (T.pack "RightIndexIntermediate")  == Just UE.RightIndexIntermediate
-      , humanBodyBones `tryParse` (T.pack "RightIndexDistal")        == Just UE.RightIndexDistal
-      , humanBodyBones `tryParse` (T.pack "RightMiddleProximal")     == Just UE.RightMiddleProximal
-      , humanBodyBones `tryParse` (T.pack "RightMiddleIntermediate") == Just UE.RightMiddleIntermediate
-      , humanBodyBones `tryParse` (T.pack "RightMiddleDistal")       == Just UE.RightMiddleDistal
-      , humanBodyBones `tryParse` (T.pack "RightRingProximal")       == Just UE.RightRingProximal
-      , humanBodyBones `tryParse` (T.pack "RightRingIntermediate")   == Just UE.RightRingIntermediate
-      , humanBodyBones `tryParse` (T.pack "RightRingDistal")         == Just UE.RightRingDistal
-      , humanBodyBones `tryParse` (T.pack "RightLittleProximal")     == Just UE.RightLittleProximal
-      , humanBodyBones `tryParse` (T.pack "RightLittleIntermediate") == Just UE.RightLittleIntermediate
-      , humanBodyBones `tryParse` (T.pack "RightLittleDistal")       == Just UE.RightLittleDistal
-      , humanBodyBones `tryParse` (T.pack "LastBone")                == Just UE.LastBone
-      ]
+    it "should parse all valid names" $ do
+      humanBodyBones `tryParse` (T.pack "Hips")                    `shouldBe` Just UE.Hips
+      humanBodyBones `tryParse` (T.pack "LeftUpperLeg")            `shouldBe` Just UE.LeftUpperLeg
+      humanBodyBones `tryParse` (T.pack "RightUpperLeg")           `shouldBe` Just UE.RightUpperLeg
+      humanBodyBones `tryParse` (T.pack "LeftFoot")                `shouldBe` Just UE.LeftFoot
+      humanBodyBones `tryParse` (T.pack "RightFoot")               `shouldBe` Just UE.RightFoot
+      humanBodyBones `tryParse` (T.pack "Spine")                   `shouldBe` Just UE.Spine
+      humanBodyBones `tryParse` (T.pack "Chest")                   `shouldBe` Just UE.Chest
+      humanBodyBones `tryParse` (T.pack "UpperChest")              `shouldBe` Just UE.UpperChest
+      humanBodyBones `tryParse` (T.pack "Neck")                    `shouldBe` Just UE.Neck
+      humanBodyBones `tryParse` (T.pack "LeftShoulder")            `shouldBe` Just UE.LeftShoulder
+      humanBodyBones `tryParse` (T.pack "RightShoulder")           `shouldBe` Just UE.RightShoulder
+      humanBodyBones `tryParse` (T.pack "LeftUpperArm")            `shouldBe` Just UE.LeftUpperArm
+      humanBodyBones `tryParse` (T.pack "RightUpperArm")           `shouldBe` Just UE.RightUpperArm
+      humanBodyBones `tryParse` (T.pack "LeftLowerArm")            `shouldBe` Just UE.LeftLowerArm
+      humanBodyBones `tryParse` (T.pack "RightLowerArm")           `shouldBe` Just UE.RightLowerArm
+      humanBodyBones `tryParse` (T.pack "LeftHand")                `shouldBe` Just UE.LeftHand
+      humanBodyBones `tryParse` (T.pack "RightHand")               `shouldBe` Just UE.RightHand
+      humanBodyBones `tryParse` (T.pack "LeftToes")                `shouldBe` Just UE.LeftToes
+      humanBodyBones `tryParse` (T.pack "RightToes")               `shouldBe` Just UE.RightToes
+      humanBodyBones `tryParse` (T.pack "LeftIndexProximal")       `shouldBe` Just UE.LeftIndexProximal
+      humanBodyBones `tryParse` (T.pack "LeftIndexIntermediate")   `shouldBe` Just UE.LeftIndexIntermediate
+      humanBodyBones `tryParse` (T.pack "LeftIndexDistal")         `shouldBe` Just UE.LeftIndexDistal
+      humanBodyBones `tryParse` (T.pack "LeftMiddleProximal")      `shouldBe` Just UE.LeftMiddleProximal
+      humanBodyBones `tryParse` (T.pack "LeftMiddleIntermediate")  `shouldBe` Just UE.LeftMiddleIntermediate
+      humanBodyBones `tryParse` (T.pack "LeftMiddleDistal")        `shouldBe` Just UE.LeftMiddleDistal
+      humanBodyBones `tryParse` (T.pack "LeftRingProximal")        `shouldBe` Just UE.LeftRingProximal
+      humanBodyBones `tryParse` (T.pack "LeftRingIntermediate")    `shouldBe` Just UE.LeftRingIntermediate
+      humanBodyBones `tryParse` (T.pack "LeftRingDistal")          `shouldBe` Just UE.LeftRingDistal
+      humanBodyBones `tryParse` (T.pack "LeftLittleProximal")      `shouldBe` Just UE.LeftLittleProximal
+      humanBodyBones `tryParse` (T.pack "LeftLittleIntermediate")  `shouldBe` Just UE.LeftLittleIntermediate
+      humanBodyBones `tryParse` (T.pack "LeftLittleDistal")        `shouldBe` Just UE.LeftLittleDistal
+      humanBodyBones `tryParse` (T.pack "RightThumbProximal")      `shouldBe` Just UE.RightThumbProximal
+      humanBodyBones `tryParse` (T.pack "RightThumbIntermediate")  `shouldBe` Just UE.RightThumbIntermediate
+      humanBodyBones `tryParse` (T.pack "RightThumbDistal")        `shouldBe` Just UE.RightThumbDistal
+      humanBodyBones `tryParse` (T.pack "RightIndexProximal")      `shouldBe` Just UE.RightIndexProximal
+      humanBodyBones `tryParse` (T.pack "RightIndexIntermediate")  `shouldBe` Just UE.RightIndexIntermediate
+      humanBodyBones `tryParse` (T.pack "RightIndexDistal")        `shouldBe` Just UE.RightIndexDistal
+      humanBodyBones `tryParse` (T.pack "RightMiddleProximal")     `shouldBe` Just UE.RightMiddleProximal
+      humanBodyBones `tryParse` (T.pack "RightMiddleIntermediate") `shouldBe` Just UE.RightMiddleIntermediate
+      humanBodyBones `tryParse` (T.pack "RightMiddleDistal")       `shouldBe` Just UE.RightMiddleDistal
+      humanBodyBones `tryParse` (T.pack "RightRingProximal")       `shouldBe` Just UE.RightRingProximal
+      humanBodyBones `tryParse` (T.pack "RightRingIntermediate")   `shouldBe` Just UE.RightRingIntermediate
+      humanBodyBones `tryParse` (T.pack "RightRingDistal")         `shouldBe` Just UE.RightRingDistal
+      humanBodyBones `tryParse` (T.pack "RightLittleProximal")     `shouldBe` Just UE.RightLittleProximal
+      humanBodyBones `tryParse` (T.pack "RightLittleIntermediate") `shouldBe` Just UE.RightLittleIntermediate
+      humanBodyBones `tryParse` (T.pack "RightLittleDistal")       `shouldBe` Just UE.RightLittleDistal
+      humanBodyBones `tryParse` (T.pack "LastBone")                `shouldBe` Just UE.LastBone
 
     it "should be case-insensitive" $
       humanBodyBones `tryParse` (T.pack "NeCK") == humanBodyBones `tryParse` (T.pack "Neck")
 
   describe "blendShapeExpression" $ do
-    it "should parse all valid names" $ foldl1 (&&)
-      [ blendShapeExpression `tryParse` (T.pack "Neutral")   == Just VRM.Neutral
-      , blendShapeExpression `tryParse` (T.pack "A")         == Just VRM.A
-      , blendShapeExpression `tryParse` (T.pack "I")         == Just VRM.I
-      , blendShapeExpression `tryParse` (T.pack "U")         == Just VRM.U
-      , blendShapeExpression `tryParse` (T.pack "E")         == Just VRM.E
-      , blendShapeExpression `tryParse` (T.pack "O")         == Just VRM.O
-      , blendShapeExpression `TryParse` (T.pack "Blink")     == Just VRM.Blink
-      , blendShapeExpression `tryParse` (T.pack "Joy")       == Just VRM.Joy
-      , blendShapeExpression `tryParse` (T.pack "Angry")     == Just VRM.Angry
-      , blendShapeExpression `tryParse` (T.pack "Sorrow")    == Just VRM.Sorrow
-      , blendShapeExpression `tryParse` (T.pack "Fun")       == Just VRM.Fun
-      , blendShapeExpression `tryParse` (T.pack "LookUp")    == Just VRM.LookUp
-      , blendShapeExpression `tryParse` (T.pack "LookDown")  == Just VRM.LookDown
-      , blendShapeExpression `tryParse` (T.pack "LookLeft")  == Just VRM.LookLeft
-      , blendShapeExpression `tryParse` (T.pack "LookRight") == Just VRM.LookRight
-      , blendShapeExpression `tryParse` (T.pack "BlinkL")    == Just VRM.BlinkL
-      , blendShapeExpression `tryParse` (T.pack "BlinkR")    == Just VRM.BlinkR
-      ]
+    it "should parse all valid names" $ do
+      blendShapeExpression `tryParse` (T.pack "Neutral")   `shouldBe` Just VRM.Neutral
+      blendShapeExpression `tryParse` (T.pack "A")         `shouldBe` Just VRM.A
+      blendShapeExpression `tryParse` (T.pack "I")         `shouldBe` Just VRM.I
+      blendShapeExpression `tryParse` (T.pack "U")         `shouldBe` Just VRM.U
+      blendShapeExpression `tryParse` (T.pack "E")         `shouldBe` Just VRM.E
+      blendShapeExpression `tryParse` (T.pack "O")         `shouldBe` Just VRM.O
+      blendShapeExpression `tryParse` (T.pack "Blink")     `shouldBe` Just VRM.Blink
+      blendShapeExpression `tryParse` (T.pack "Joy")       `shouldBe` Just VRM.Joy
+      blendShapeExpression `tryParse` (T.pack "Angry")     `shouldBe` Just VRM.Angry
+      blendShapeExpression `tryParse` (T.pack "Sorrow")    `shouldBe` Just VRM.Sorrow
+      blendShapeExpression `tryParse` (T.pack "Fun")       `shouldBe` Just VRM.Fun
+      blendShapeExpression `tryParse` (T.pack "LookUp")    `shouldBe` Just VRM.LookUp
+      blendShapeExpression `tryParse` (T.pack "LookDown")  `shouldBe` Just VRM.LookDown
+      blendShapeExpression `tryParse` (T.pack "LookLeft")  `shouldBe` Just VRM.LookLeft
+      blendShapeExpression `tryParse` (T.pack "LookRight") `shouldBe` Just VRM.LookRight
+      blendShapeExpression `tryParse` (T.pack "BlinkL")    `shouldBe` Just VRM.BlinkL
+      blendShapeExpression `tryParse` (T.pack "BlinkR")    `shouldBe` Just VRM.BlinkR
     
     it "should be case-insensitive" $
       blendShapeExpression `tryParse` (T.pack "neuTrAl") == blendShapeExpression `tryParse` (T.pack "Neutral")
