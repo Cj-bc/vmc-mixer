@@ -18,13 +18,14 @@ You should have received a copy of the GNU General Public License along with vmc
 -}
 {-# LANGUAGE OverloadedStrings #-}
 module VMCMixer.Parser where
-import Control.Monad (fail, when)
+import Control.Monad (fail, when, guard)
 import Data.Attoparsec.Text as AT
 import Data.UnityEditor (HumanBodyBones(..))
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
 import VMCMixer.Types (Performer(..), Marionette(..))
 import Lens.Micro ((%~), _1, _2)
+import Data.Char (isSpace)
 
 data HostName = IPAddress Int Int Int Int
               | DomainName T.Text
@@ -164,7 +165,13 @@ humanBodyBones = choice $ fmap f allBones
 blendShapeExpression :: Parser BlendShapeExpression
 blendShapeExpression = choice $ fmap f allExps ++ [Custom . T.pack <$> many1 letter]
   where
-    f exp = asciiCI (T.pack $ show exp) >> return exp
+    f exp = do
+      asciiCI (T.pack $ show exp)
+      nextChar <- peekChar 
+      -- make sure shorter name doesn't eat longer name: e.g. prevent 'Angry' from recognized as 'A'
+      guard $ maybe True isSpace nextChar
+      return exp
+
     allExps =  [Neutral
                , A, Data.VRM.I, U, E, O
                , Blink
