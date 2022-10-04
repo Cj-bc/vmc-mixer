@@ -173,3 +173,15 @@ spec = do
     it "should be case-insensitive" $
       marionetteMsgAddresses `tryParse` (T.pack "avAilAbLE") == marionetteMsgAddresses `tryParse` (T.pack "Available")
     
+  describe "filterRow" $ do
+    it "should parse port number successfully" $
+      filterRow `tryParse` (T.pack "RootTransform=0") `shouldBe` Just (RootTransform, [Left 0])
+
+    it "should parse performer name successfully" $
+      filterRow `tryParse` (T.pack "RootTransform=Waidayo") `shouldBe` Just (RootTransform, [Right "Waidayo"])
+
+    it "should accept more than one values separated by ','" $
+      filterRow `tryParse (T.pack "RootTransform=0,1,2") `shouldBe` Just (RootTransform, [Left 0, Left 1, Left 2])
+
+    it "should parse both port number and performer name" $ do
+      filterRow `tryParse` (T.pack "RootTransform=Waidayo,1") `shouldBe` Just (RootTransform, [Right "Waidayo", Left 1])

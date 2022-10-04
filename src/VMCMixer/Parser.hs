@@ -193,3 +193,18 @@ marionetteMsgAddresses =
          , asciiCI "VRMBlendShapeProxyValue" >> char '.' >> blendShapeExpression <&> VRMBlendShapeProxyValue
          , asciiCI "VRMBlendShapeProxyApply" >> return VRMBlendShapeProxyApply
          ]
+
+-- | One row of 'Filter' representation in text.
+--
+-- Each row defines which 'MarionetteMsgAddresses' have what kind of filter.
+--
+-- Examples of valid filter representations:
+-- + One 'Performer' for one 'MarionetteMsgAddresses' by its name: @RootTransform=Waidayo@
+-- + One 'Performer' for one 'MarionetteMsgAddresses' by its port number: @RootTransform=0@
+-- + Multiple 'Performer's for one 'MarionetteMsgAddresses': @Time=12,13@
+filterRow :: Parser (MarionetteMsgAddresses, [Either Int String])
+filterRow = do
+  addr <- marionetteMsgAddresses
+  char '='
+  ps <- (fmap (Left . read) (many1 digit) <|> fmap Right (many1 letter)) `sepBy1` char ','
+  return (addr, ps)
