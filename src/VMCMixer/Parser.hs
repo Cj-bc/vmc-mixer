@@ -23,8 +23,9 @@ import Data.Attoparsec.Text as AT
 import Data.UnityEditor (HumanBodyBones(..))
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
-import VMCMixer.Types (Performer(..), Marionette(..))
+import VMCMixer.Types (Performer(..), Marionette(..), MarionetteMsgAddresses (..))
 import Lens.Micro ((%~), _1, _2)
+import Data.Functor ((<&>))
 import Data.Char (isSpace)
 
 data HostName = IPAddress Int Int Int Int
@@ -180,3 +181,14 @@ blendShapeExpression = choice $ fmap f allExps ++ [Custom . T.pack <$> many1 let
                , LookLeft, LookRight
                , BlinkL, BlinkR
                ]
+
+marionetteMsgAddresses :: Parser MarionetteMsgAddresses
+marionetteMsgAddresses =
+  -- asciiCI is case-insensitive
+  choice [ asciiCI "Available" >> return Available
+         , asciiCI "Time" >> return Time
+         , asciiCI "RootTransform" >> return RootTransform
+         , asciiCI "BoneTransform" >> char '.' >> humanBodyBones <&> BoneTransform
+         , asciiCI "VRMBlendShapeProxyValue" >> char '.' >> blendShapeExpression <&> VRMBlendShapeProxyValue
+         , asciiCI "VRMBlendShapeProxyApply" >> return VRMBlendShapeProxyApply
+         ]

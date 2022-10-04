@@ -1,7 +1,7 @@
 module VMCMixer.ParserSpec where
 
 import VMCMixer.Parser
-import VMCMixer.Types (Performer(Performer), Marionette(Marionette))
+import VMCMixer.Types (Performer(Performer), Marionette(Marionette), MarionetteMsgAddresses(..))
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Data.Attoparsec.Text
@@ -160,4 +160,16 @@ spec = do
     
     it "should be case-insensitive" $
       blendShapeExpression `tryParse` (T.pack "neuTrAl") == blendShapeExpression `tryParse` (T.pack "Neutral")
+
+  describe "marionetteMsgAddresses" $ do
+    it "shuold parse all valid names" $ do
+      marionetteMsgAddresses `tryParse` (T.pack "Available")                 `shouldBe` Just Available
+      marionetteMsgAddresses `tryParse` (T.pack "Time")                      `shouldBe` Just Time
+      marionetteMsgAddresses `tryParse` (T.pack "RootTransform")             `shouldBe` Just RootTransform
+      marionetteMsgAddresses `tryParse` (T.pack "BoneTransform.Hips")        `shouldBe` Just (BoneTransform UE.Hips)
+      marionetteMsgAddresses `tryParse` (T.pack "VRMBlendShapeProxyValue.A") `shouldBe` Just (VRMBlendShapeProxyValue VRM.A)
+      marionetteMsgAddresses `tryParse` (T.pack "VRMBlendShapeProxyApply")   `shouldBe` Just VRMBlendShapeProxyApply
+      
+    it "should be case-insensitive" $
+      marionetteMsgAddresses `tryParse` (T.pack "avAilAbLE") == marionetteMsgAddresses `tryParse` (T.pack "Available")
     
