@@ -25,6 +25,7 @@ import Control.Applicative ((<|>))
 import qualified Data.Text as T
 import VMCMixer.Types (Performer(..), Marionette(..), MarionetteMsgAddresses (..))
 import Lens.Micro ((%~), _1, _2)
+import Data.VRM (BlendShapeExpression(..))
 import Data.Functor ((<&>))
 import Data.Char (isSpace)
 
