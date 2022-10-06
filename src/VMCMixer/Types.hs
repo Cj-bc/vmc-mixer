@@ -95,3 +95,6 @@ data Filter = Filter { _filters :: HMap.HashMap MarionetteMsgAddresses [Performe
                      } deriving (Show, Eq)
 makeLenses ''Filter
 
+toFilter :: [(MarionetteMsgAddresses, [Performer])] -> Filter
+toFilter = Filter . HMap.fromList
+
