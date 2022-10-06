@@ -47,7 +47,7 @@ import Brick.Widgets.Core (Named(..), vBox, hBox, str, txt, clickable, padLeft, 
 import Brick.Widgets.Border (hBorder)
 import Brick.Types (Widget, Padding(Pad), EventM)
 import qualified Data.HashMap.Strict as HMap
-import VMCMixer.Types (MarionetteMsgAddresses, Performer, performerName, performerPort, Filter(Filter))
+import VMCMixer.Types (MarionetteMsgAddresses(Time), Performer, performerName, performerPort, Filter(Filter))
 import Lens.Micro ((^.), (%~), (&), _2, (.~), over, each)
 import Lens.Micro.Extras (view)
 import Lens.Micro.TH (makeLenses)

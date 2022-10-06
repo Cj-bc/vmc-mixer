@@ -23,7 +23,7 @@ import Data.Attoparsec.Text as AT
 import Data.UnityEditor (HumanBodyBones(..))
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
-import VMCMixer.Types (Performer(..), Marionette(..), MarionetteMsgAddresses (..))
+import VMCMixer.Types (Performer(..), performerPort, performerName, Marionette(..), MarionetteMsgAddresses (..))
 import Lens.Micro ((%~), _1, _2, over, (^.))
 import Data.VRM (BlendShapeExpression(..))
 import Data.Functor ((<&>))
