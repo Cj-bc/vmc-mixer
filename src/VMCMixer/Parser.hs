@@ -24,7 +24,7 @@ import Data.UnityEditor (HumanBodyBones(..))
 import Control.Applicative ((<|>))
 import qualified Data.Text as T
 import VMCMixer.Types (Performer(..), Marionette(..), MarionetteMsgAddresses (..))
-import Lens.Micro ((%~), _1, _2)
+import Lens.Micro ((%~), _1, _2, over, (^.))
 import Data.VRM (BlendShapeExpression(..))
 import Data.Functor ((<&>))
 import Data.Char (isSpace)
@@ -47,6 +47,9 @@ parsePerformer s = eitherResult $ parse performer (T.pack s) `feed` ""
 
 parseMarionette :: String -> Either String Marionette
 parseMarionette s = eitherResult $ parse marionette (T.pack s) `feed` ""
+
+parseFilter :: String -> Either String (MarionetteMsgAddresses, V.Vector (Either Int String))
+parseFilter = parseOnly filterRow . T.pack
 
 -- | Non standard ports are required.
 parsePort :: String -> Either String Int
@@ -209,3 +212,16 @@ filterRow = do
   char '='
   ps <- (fmap (Left . read) (many1 digit) <|> fmap Right (many1 letter)) `sepBy1` char ','
   return (addr, V.fromList ps)
+
+-- | Create completed Filter row data by using list of defined 'Performer's information
+--
+-- 'definedPerformers' is used to fill missing information in 'Either Int String'
+completeFilterRow :: [Performer]
+                  -> [(MarionetteMsgAddresses, V.Vector (Either Int String))]
+                  -> [(MarionetteMsgAddresses, V.Vector Performer)]
+completeFilterRow definedPerformers = fmap . over _2 . V.mapMaybe $ getProperPerformer definedPerformers
+
+-- | Find suitable 'Performer' from list of 'Performer's
+getProperPerformer :: [Performer] -> Either Int String -> Maybe Performer
+getProperPerformer ps (Left portNum) = lookup portNum $ fmap (\p -> (p^.performerPort, p)) ps
+getProperPerformer ps (Right name)   = lookup (Just . T.pack $ name) $ fmap (\p -> (p^.performerName, p)) ps
