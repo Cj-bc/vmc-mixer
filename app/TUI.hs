@@ -65,7 +65,7 @@ main = do
   opts <- getOption
   let performerAddrs  = opts^.Opt.performers
       marionetteAddr = opts^.Opt.marionette
-      _fallback = Performer 39541 (Just "waidayo") -- TODO: Read fallback from command option
+      filterRows = opts^.Opt.filterOpt
 
   -- Create 'Pipes.Concurrent.Mailbox', which received packet will be
   -- go through.
@@ -78,7 +78,7 @@ main = do
 
   brickCh <- newBChan 1
   restAsyncs <- async $ mainLoop (readBChan brickCh) msgOut performerAddrs
-  defaultMain app (initialState brickCh performerAddrs)
+  defaultMain app (initialState brickCh performerAddrs filterRows)
 
   cancel restAsyncs
   void $ wait output

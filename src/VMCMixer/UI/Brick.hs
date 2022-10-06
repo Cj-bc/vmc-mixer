@@ -120,13 +120,8 @@ app = App { appDraw = ui
           , appAttrMap      = const vmcmAttrmap
           }
 
-initialState :: BChan VMCMixerUIEvent -> [Performer] -> AppState
-initialState evEmitterCh initialInputs = AppState (list InputStreams (V.fromList initialInputs) 2)
+initialState :: BChan VMCMixerUIEvent -> [Performer] -> [(MarionetteMsgAddresses, V.Vector Performer)] -> AppState
+initialState evEmitterCh initialInputs filterRows = AppState (list InputStreams (V.fromList initialInputs) 2)
                V.empty (editor NewAddrEditor (Just 1) "") (focusRing [InputStreams, NewAddrEditor
                                                                        , FiltersDisplay]) evEmitterCh
-                                         (filterDisplay FiltersDisplay
-                                           [(RootTransform
-                                            , V.fromList [Performer 39542 $ Just "FooBar"])
-                                           ]
-                                         -- TODO: it is stub. you should give fallback properly
-                                         )
+                                         (filterDisplay FiltersDisplay filterRows)
