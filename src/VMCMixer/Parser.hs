@@ -28,6 +28,7 @@ import Lens.Micro ((%~), _1, _2)
 import Data.VRM (BlendShapeExpression(..))
 import Data.Functor ((<&>))
 import Data.Char (isSpace)
+import qualified Data.Vector as V
 
 data HostName = IPAddress Int Int Int Int
               | DomainName T.Text
@@ -202,9 +203,9 @@ marionetteMsgAddresses =
 -- + One 'Performer' for one 'MarionetteMsgAddresses' by its name: @RootTransform=Waidayo@
 -- + One 'Performer' for one 'MarionetteMsgAddresses' by its port number: @RootTransform=0@
 -- + Multiple 'Performer's for one 'MarionetteMsgAddresses': @Time=12,13@
-filterRow :: Parser (MarionetteMsgAddresses, [Either Int String])
+filterRow :: Parser (MarionetteMsgAddresses, V.Vector (Either Int String))
 filterRow = do
   addr <- marionetteMsgAddresses
   char '='
   ps <- (fmap (Left . read) (many1 digit) <|> fmap Right (many1 letter)) `sepBy1` char ','
-  return (addr, ps)
+  return (addr, V.fromList ps)
