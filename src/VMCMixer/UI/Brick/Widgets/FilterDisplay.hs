@@ -76,7 +76,13 @@ filterAdd p display = display&containedFilters.peeked._2%~(`V.snoc` p)
 filterRemove :: Performer -> FilterDisplay n -> FilterDisplay n
 filterRemove p display = display&containedFilters.peeked._2%~V.filter (/= p)
 
+-- | Helper function to create
+--
+-- Fixme: It inserts Filter for 'Time' temporary to create 'Zipper'
+-- Consider switch to use other data structure in 'FilterDisplay' as
+-- filter could be empty
 filterDisplay :: n -> [(MarionetteMsgAddresses, V.Vector Performer)] -> FilterDisplay n
+filterDisplay n [] = FilterDisplay n (Zipper (Time, V.empty) [] [])
 filterDisplay n (peeked':rest) = FilterDisplay n (Zipper peeked' [] rest)
 
 instance Named (FilterDisplay n) n where
