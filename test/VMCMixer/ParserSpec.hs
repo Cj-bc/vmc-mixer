@@ -8,6 +8,7 @@ import Data.Attoparsec.Text
 import qualified Data.Text as T
 import qualified Data.UnityEditor as UE
 import qualified Data.VRM as VRM
+import qualified Data.Vector as V
 
 tryParse :: Parser a -> T.Text -> Maybe a
 tryParse parser txt = maybeResult (parse parser txt `feed` (T.pack ""))
@@ -175,13 +176,13 @@ spec = do
     
   describe "filterRow" $ do
     it "should parse port number successfully" $
-      filterRow `tryParse` (T.pack "RootTransform=0") `shouldBe` Just (RootTransform, [Left 0])
+      filterRow `tryParse` (T.pack "RootTransform=0") `shouldBe` Just (RootTransform, V.fromList [Left 0])
 
     it "should parse performer name successfully" $
-      filterRow `tryParse` (T.pack "RootTransform=Waidayo") `shouldBe` Just (RootTransform, [Right "Waidayo"])
+      filterRow `tryParse` (T.pack "RootTransform=Waidayo") `shouldBe` Just (RootTransform, V.fromList [Right "Waidayo"])
 
     it "should accept more than one values separated by ','" $
-      filterRow `tryParse (T.pack "RootTransform=0,1,2") `shouldBe` Just (RootTransform, [Left 0, Left 1, Left 2])
+      filterRow `tryParse` (T.pack "RootTransform=0,1,2") `shouldBe` Just (RootTransform, V.fromList [Left 0, Left 1, Left 2])
 
     it "should parse both port number and performer name" $ do
-      filterRow `tryParse` (T.pack "RootTransform=Waidayo,1") `shouldBe` Just (RootTransform, [Right "Waidayo", Left 1])
+      filterRow `tryParse` (T.pack "RootTransform=Waidayo,1") `shouldBe` Just (RootTransform, V.fromList [Right "Waidayo", Left 1])
