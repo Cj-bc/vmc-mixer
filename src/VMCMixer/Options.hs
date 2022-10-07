@@ -26,28 +26,50 @@ import VMCMixer.Parser (parseMarionette, parsePerformer, completeFilterRow, pars
 import VMCMixer.Types (Performer, Marionette, MarionetteMsgAddresses)
 import Lens.Micro.TH (makeLenses)
 import qualified Data.Vector as V
-
 -- | vmc-mixer's command line options
+--
+-- Users mainly need to use this intead of 'PartialOption'
 data Option = Option { _performers :: [Performer]
                        -- ^ List of input ports
                      , _marionette :: Marionette
                        -- ^ Output address
                      , _filterOpt :: [(MarionetteMsgAddresses, V.Vector Performer)]
                      } deriving (Show)
-
 makeLenses ''Option
 
 -- | Parse command line option and returns its result
 -- as 'Option' data.
 getOption :: IO Option
-getOption = execParser $ info vmcmixerOpts fullDesc
+getOption = fmap fillPartial . execParser $ info vmcmixerOpts fullDesc
+
+-- | [Internal] 
+--
+-- This exists just because I couldn't convret '_partFilterOpt' with list of 'Performer's
+data PartialOption = PartOpt { _partPerformers :: [Performer]
+                               -- ^ List of input ports
+                             , _partMarionette :: Marionette
+                             -- ^ Output address
+                             , _partFilterOpt :: [(MarionetteMsgAddresses, V.Vector (Either Int String))]
+                             -- ^ List of filter rows but need some modification
+                             }
+
+-- | [Internal] Create 'Option' from 'PartialOption'
+--
+-- It only converts filter row
+fillPartial :: PartialOption -> Option
+fillPartial popt = let performers = _partPerformers popt
+                       marionette = _partMarionette popt
+                       filterRows = _partFilterOpt popt
+                   in Option performers marionette (completeFilterRow performers  filterRows)
 
 -- | Parser for vmc-mixer's all options
-vmcmixerOpts :: Parser Option
-vmcmixerOpts = let performers = many performerList
-               in Option <$> performers
-                  <*> argument (eitherReader parseMarionette) (metavar "marionette")
-                  <*> (completeFilterRow <$> performers <*> many filterRow)
+--
+-- This isn't intended to be used by user.
+-- Use 'getOption' to get 'Option'
+vmcmixerOpts :: Parser PartialOption
+vmcmixerOpts = PartOpt <$> many performerList
+               <*> argument (eitherReader parseMarionette) (metavar "marionette")
+               <*> many filterRow
 
 -- | Small parser for inputAddress
 performerList :: Parser Performer
