@@ -19,63 +19,13 @@ You should have received a copy of the GNU General Public License along with vmc
 It's recommended to do qualified import,
 as some lens have common name.
 -}
-{-# LANGUAGE TemplateHaskell #-}
-module VMCMixer.Options where
-import Options.Applicative
-import VMCMixer.Parser (parseMarionette, parsePerformer, completeFilterRow, parseFilter)
-import VMCMixer.Types (Performer, Marionette, MarionetteMsgAddresses)
-import Lens.Micro.TH (makeLenses)
-import qualified Data.Vector as V
--- | vmc-mixer's command line options
---
--- Users mainly need to use this intead of 'PartialOption'
-data Option = Option { _performers :: [Performer]
-                       -- ^ List of input ports
-                     , _marionette :: Marionette
-                       -- ^ Output address
-                     , _filterOpt :: [(MarionetteMsgAddresses, V.Vector Performer)]
-                     } deriving (Show)
-makeLenses ''Option
+module VMCMixer.Options (
+  Option(..)
+, getOption
+  -- * Lenses
+, performers
+, marionette
+, filterOpt
+) where
 
--- | Parse command line option and returns its result
--- as 'Option' data.
-getOption :: IO Option
-getOption = fmap fillPartial . execParser $ info vmcmixerOpts fullDesc
-
--- | [Internal] 
---
--- This exists just because I couldn't convret '_partFilterOpt' with list of 'Performer's
-data PartialOption = PartOpt { _partPerformers :: [Performer]
-                               -- ^ List of input ports
-                             , _partMarionette :: Marionette
-                             -- ^ Output address
-                             , _partFilterOpt :: [(MarionetteMsgAddresses, V.Vector (Either Int String))]
-                             -- ^ List of filter rows but need some modification
-                             }
-
--- | [Internal] Create 'Option' from 'PartialOption'
---
--- It only converts filter row
-fillPartial :: PartialOption -> Option
-fillPartial popt = let performers = _partPerformers popt
-                       marionette = _partMarionette popt
-                       filterRows = _partFilterOpt popt
-                   in Option performers marionette (completeFilterRow performers  filterRows)
-
--- | Parser for vmc-mixer's all options
---
--- This isn't intended to be used by user.
--- Use 'getOption' to get 'Option'
-vmcmixerOpts :: Parser PartialOption
-vmcmixerOpts = PartOpt <$> many performerList
-               <*> argument (eitherReader parseMarionette) (metavar "marionette")
-               <*> many filterRow
-
--- | Small parser for inputAddress
-performerList :: Parser Performer
-performerList = option (eitherReader parsePerformer)
-                (long "performer" <> short 'p')
-
-filterRow :: Parser (MarionetteMsgAddresses, V.Vector (Either Int String))
-filterRow = option (eitherReader parseFilter)
-             (long "filter" <> short 'f')
+import VMCMixer.Options.Internal
