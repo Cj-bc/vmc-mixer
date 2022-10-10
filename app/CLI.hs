@@ -23,7 +23,7 @@ at launching.
 -}
 
 module Main where
-import VMCMixer.Types (Performer(Performer), Filter(Filter), MarionetteMsgAddresses(RootTransform))
+import VMCMixer.Types (Performer(Performer), Filter(Filter), MarionetteMsgAddresses(RootTransform), toFilter)
 import VMCMixer.Backend (sendIt, awaitPacket)
 import VMCMixer.Backend.Filter (SenderCmd (UpdateFilter))
 import Control.Concurrent.Async (async, link, waitAny, cancel, forConcurrently_, wait)
@@ -45,7 +45,7 @@ main = do
   output <- async $ sendIt (opt^.Opt.marionette) msgIn
 
   -- set filter
-  let filter_ = Filter $ HMap.fromList [(RootTransform, [Performer 39542 Nothing])]
+  let filter_ = toFilter $ opt^.Opt.filterOpt
   runEffect $ yield (UpdateFilter filter_) >-> toOutput msgOut
 
   as <- forM (opt^.Opt.performers) $ \p -> do
