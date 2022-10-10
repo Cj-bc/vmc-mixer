@@ -9,6 +9,7 @@ import qualified Data.Text as T
 import qualified Data.UnityEditor as UE
 import qualified Data.VRM as VRM
 import qualified Data.Vector as V
+import VMCMixer.Parser (completeFilterRow)
 
 tryParse :: Parser a -> T.Text -> Maybe a
 tryParse parser txt = maybeResult (parse parser txt `feed` (T.pack ""))
@@ -186,3 +187,16 @@ spec = do
 
     it "should parse both port number and performer name" $ do
       filterRow `tryParse` (T.pack "RootTransform=Waidayo,1") `shouldBe` Just (RootTransform, V.fromList [Right "Waidayo", Left 1])
+
+  describe "completeFilterRow" $ do
+    it "should work with port number" $
+      completeFilterRow [Performer 0 (Just $ T.pack "Test Perf")] [(Time, V.fromList [Left 0])]
+      `shouldBe` [(Time,V.fromList [Performer 0 (Just $ T.pack "Test Perf")])]
+
+    it "should work with performer name" $
+      completeFilterRow [Performer 0 (Just $ T.pack "Test Perf")] [(Time, V.fromList [Right "Test Perf"])]
+      `shouldBe` [(Time, V.fromList [Performer 0 (Just $ T.pack "Test Perf")])]
+
+    it "should remove any not-defined 'Performer'" $
+      completeFilterRow [Performer 0 Nothing] [(Time, V.fromList [Left 0, Left 1])]
+        `shouldBe` [(Time, V.fromList [Performer 0 Nothing])]
