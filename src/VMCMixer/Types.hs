@@ -28,6 +28,7 @@ import Lens.Micro.TH (makeLenses)
 import qualified Data.VMCP.Marionette as Marionette
 import qualified Data.Map.Strict as Map
 import qualified Data.HashMap.Strict as HMap
+import qualified Data.Vector as V
 
 -- | Represents one 'Performer'
 --
@@ -91,10 +92,10 @@ extractAddress msg = case msg of
                                                  ]
 
 -- | Represents one filter
-data Filter = Filter { _filters :: HMap.HashMap MarionetteMsgAddresses [Performer] -- ^ Use those 
+data Filter = Filter { _filters :: HMap.HashMap MarionetteMsgAddresses (V.Vector Performer) -- ^ Use those 
                      } deriving (Show, Eq)
 makeLenses ''Filter
 
-toFilter :: [(MarionetteMsgAddresses, [Performer])] -> Filter
+toFilter :: [(MarionetteMsgAddresses, V.Vector Performer)] -> Filter
 toFilter = Filter . HMap.fromList
 

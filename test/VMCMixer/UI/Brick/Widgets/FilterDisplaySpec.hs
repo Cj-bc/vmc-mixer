@@ -23,7 +23,7 @@ spec = do
           zipper = Zipper (head filters) (tail filters) []
           fbkName = ()
           fd = FilterDisplay name zipper
-      in toFilter fd == (Filter . HMap.fromList $ over (each._2) V.toList filters)
+      in toFilter fd == (Filter $ HMap.fromList filters)
 
   describe "filterAdd" $ do
     let sampleFD = FilterDisplay () (Zipper (Available, V.fromList [(Performer 0 Nothing)]) [] [])

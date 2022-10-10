@@ -44,6 +44,7 @@ import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.State.Strict (StateT)
 import qualified Data.HashMap.Strict as HMap
 import qualified Data.List as List
+import qualified Data.Vector as Vector
 import Data.Maybe (maybe, fromMaybe)
 import Data.VMCP.Marionette (MarionetteMsg)
 import Data.VRM (BlendShapeExpression)
@@ -142,7 +143,7 @@ applyFilter' p msgAddr layerState =
 -- i.e. highest priority value is @0@.
 calcPriority :: Filter -> MarionetteMsgAddresses -> Performer -> Int
 calcPriority f addr p = fromMaybe maxBound
-  $ HMap.lookup addr (view filters f) >>= List.elemIndex p
+  $ HMap.lookup addr (view filters f) >>= Vector.elemIndex p
 
 
 -- | Update

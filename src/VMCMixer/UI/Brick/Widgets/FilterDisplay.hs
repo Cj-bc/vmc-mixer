@@ -65,7 +65,6 @@ makeLenses ''FilterDisplay
 
 toFilter :: FilterDisplay n -> Filter
 toFilter d = Filter $ HMap.fromList
-             . over (each._2) V.toList
              $ d^.containedFilters.before ++ [d^.containedFilters.peeked] ++ d^.containedFilters.after
 
 -- | Add new filter spec to peeked address
