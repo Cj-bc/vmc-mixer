@@ -32,6 +32,7 @@ library
       VMCMixer.Parser
       VMCMixer.Backend
       VMCMixer.Options
+      VMCMixer.Options.Internal
       VMCMixer.Types
       VMCMixer.Backend.Filter
       VMCMixer.Backend.Sender
@@ -98,6 +99,7 @@ executable vmc-mixer-cli
     , pipes-concurrency
     , microlens
     , hVMCP
+    , pipes
   default-language: Haskell2010
 
 test-suite vmc-mixer-test
@@ -120,4 +122,6 @@ test-suite vmc-mixer-test
     , vector
     , unordered-containers
     , hVMCP
+    , mtl
+    , pipes
   default-language: Haskell2010
